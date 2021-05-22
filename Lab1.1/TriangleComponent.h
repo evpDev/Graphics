@@ -10,7 +10,7 @@
 #include <directxmath.h>
 //#include <initializer_list>
 
-class TriangleComponent {// : public GameComponent {
+class TriangleComponent  : public GameComponent {
 public:
 	const static int VERTICLES_NUM = 3;
 	ID3D11InputLayout* layout;

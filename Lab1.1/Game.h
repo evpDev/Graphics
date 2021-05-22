@@ -19,12 +19,13 @@
 #include <directxmath.h>
 
 class Game {
+public:
 	ID3D11Texture2D* backBuffer;
 	ID3D11DeviceContext* context;
 	ID3D11Debug* debug;
 	ID3DUserDefinedAnnotation* annotation;
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
-	int instance;
+	static Game* instance;
 	LPCWSTR name;
 	std::chrono::time_point<std::chrono::steady_clock> prevTime;
 	int renderSRV;
@@ -38,13 +39,13 @@ class Game {
 	unsigned int frameCount; // there is no in scheme
 	DisplayWin32* display;
 	InputDevice inputDevice;
-	std::vector<TriangleComponent*> components;
-	TriangleComponent component;
+	std::vector<GameComponent*> components;
+	//TriangleComponent component;
 	ID3D11Buffer* createIndexBuffer(int indeces[], int indecesSize);
 	DirectX::XMFLOAT4 positions[4];
 	DirectX::XMFLOAT4 colors[4];
 	int indexes[6];
-public:
+
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();
 	void destroyResources();
@@ -52,7 +53,7 @@ public:
 	void endFrame();
 	void exit();
 	int initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow);
-	void messageHandler();
+	static LRESULT messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);
 	int prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
 	//int prepareFrame(TriangleComponent* tc);
 	int prepareResources();

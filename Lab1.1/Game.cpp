@@ -28,8 +28,11 @@
 
 using namespace DirectX;
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
-{
+LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
+	return Game::messageHandler(hwnd, umessage, wparam, lparam);
+}
+
+LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
 	//auto id = std::this_thread::get_id();
 	//std::cout << "WndProc id: " << id << "\n";
 
@@ -107,8 +110,8 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 
 	prepareResources();
 	
-	for (TriangleComponent* tc : components) {
-		tc->initialize(display, device);
+	for (GameComponent* tc : components) {
+		((TriangleComponent*) tc)->initialize(display, device);
 	}
 
 	// points example
@@ -181,13 +184,13 @@ void Game::draw() {
 	//bool s_EnableVSync = true;
 	//UINT PresentInterval = s_EnableVSync ? std::min(4, (int)(s_FrameTime * 60.0f)) : 0;
 
-	swapChain1->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+	endFrame();
 }
 
 void Game::destroyResources() {
-	for (TriangleComponent* tc : components) {
-		tc->vertexShader->Release();
-		tc->pixelShader->Release();
+	for (GameComponent* tc : components) {
+		((TriangleComponent*)tc)->vertexShader->Release();
+		((TriangleComponent*)tc)->pixelShader->Release();
 	}
 
 	device->Release();
@@ -266,13 +269,13 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	UINT strides[] = { 16, 16 };
 	UINT offsets[] = { 0, 0 };
 	
-	for (TriangleComponent* tc : components) {
-		context->IASetInputLayout(tc->layout);
+	for (GameComponent* tc : components) {
+		context->IASetInputLayout(((TriangleComponent*)tc)->layout);
 		context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
 		context->IASetVertexBuffers(0, 2, vBuffers, strides, offsets);
-		context->VSSetShader(tc->vertexShader, nullptr, 0);
-		context->PSSetShader(tc->pixelShader, nullptr, 0);
+		context->VSSetShader(((TriangleComponent*)tc)->vertexShader, nullptr, 0);
+		context->PSSetShader(((TriangleComponent*)tc)->pixelShader, nullptr, 0);
 	}
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
@@ -294,7 +297,7 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	viewport.MaxDepth = 1.0f;
 
 	context->RSSetViewports(1, &viewport);
-	context->OMSetRenderTargets(1, &rtv, nullptr); 
+	context->OMSetRenderTargets(1, &rtv, nullptr);
 }
 
 int Game::prepareResources() {
@@ -348,4 +351,8 @@ int Game::prepareResources() {
 	//ID3D11Debug* debug;
 	device->QueryInterface(IID_ID3D11Debug, (void**)&debug);
 
+}
+
+void Game::endFrame() {
+	swapChain1->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 }

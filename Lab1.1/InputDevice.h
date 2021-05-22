@@ -7,7 +7,7 @@ class InputDevice {
 	int mouseMove;
 	int mouseOffset;
 	int mousePosition;
-	int mouseWHeelDistance;//?? distance ??
+	int mouseWheelDistance;//?? distance ??
 public:
 	void addPressedKey();
 	void isKeyDown();
