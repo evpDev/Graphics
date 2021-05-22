@@ -2,8 +2,10 @@
 
 using namespace DirectX;
 
-TriangleComponent::TriangleComponent() : 
-	positions{ 
+TriangleComponent::TriangleComponent() {}
+
+TriangleComponent::TriangleComponent(int* indexes) :
+	positions { 
 		XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
 		XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
 		XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
@@ -15,7 +17,19 @@ TriangleComponent::TriangleComponent() :
 		XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	}
-	{}
+{	
+	std::copy(indexes, indexes + VERTICLES_NUM, verticles);
+}
+
+TriangleComponent::TriangleComponent(DirectX::XMFLOAT4* positions, 
+		DirectX::XMFLOAT4* colors, 
+		int posColSize,
+		int* indexes
+) {
+	std::copy(positions, positions + posColSize, this->positions);
+	std::copy(colors, colors + posColSize, this->colors);
+	std::copy(indexes, indexes + VERTICLES_NUM, this->verticles);
+ }
 
 int TriangleComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device) {
 	HRESULT res;

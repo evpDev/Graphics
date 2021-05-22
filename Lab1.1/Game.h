@@ -38,9 +38,12 @@ class Game {
 	unsigned int frameCount; // there is no in scheme
 	DisplayWin32* display;
 	InputDevice inputDevice;
-	std::vector<TriangleComponent> components;
+	std::vector<TriangleComponent*> components;
 	TriangleComponent component;
 	ID3D11Buffer* createIndexBuffer(int indeces[], int indecesSize);
+	DirectX::XMFLOAT4 positions[4];
+	DirectX::XMFLOAT4 colors[4];
+	int indexes[6];
 public:
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();
@@ -51,6 +54,7 @@ public:
 	int initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow);
 	void messageHandler();
 	int prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
+	//int prepareFrame(TriangleComponent* tc);
 	int prepareResources();
 	void restoreTargets();
 	void run();

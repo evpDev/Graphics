@@ -75,24 +75,41 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 	}
 }
 
-Game::Game(HINSTANCE hInstance) {
+Game::Game(HINSTANCE hInstance) : 
+	positions {
+		XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
+		XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
+		XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
+		XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
+	},
+	colors {
+		XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+		XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+		XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+	},
+	indexes { 0,1,2, 1,0,3 }
+{
 	name = L"Game";
 	display = new DisplayWin32(name, hInstance, 800, 800);
 	float totalTime = 0;
 	unsigned int frameCount = 0;
+
+	for (int i = 0; i < 2; i++) {
+		int triIndexes[3];
+		std::copy(indexes + 3 * i, indexes + 3 * i + 3, triIndexes);
+		components.push_back(new TriangleComponent(positions, colors, std::size(positions), triIndexes));
+	}
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
-#pragma region Window Initialization
-	// empty
-#pragma endregion Window Initialization
-
-#pragma region DirectX initialization
 	HRESULT res;
 
 	prepareResources();
-
-	component.initialize(display, device);
+	
+	for (TriangleComponent* tc : components) {
+		tc->initialize(display, device);
+	}
 
 	// points example
 	/*DirectX::XMFLOAT4 points[8] = {
@@ -102,15 +119,9 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 		XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	};*/
 
-	int indeces[] = { 0,1,2, 1,0,3 };
-
-	prepareFrame(component.positions, std::size(component.positions),
-		component.colors,
-		indeces, std::size(indeces));
-
-#pragma endregion DirectX initialization
-	//run();
-	//destroyResources();
+	prepareFrame(positions, std::size(positions),
+		colors,
+		indexes, std::size(indexes));
 
 	return 0;
 }
@@ -174,8 +185,10 @@ void Game::draw() {
 }
 
 void Game::destroyResources() {
-	component.vertexShader->Release();
-	component.pixelShader->Release();
+	for (TriangleComponent* tc : components) {
+		tc->vertexShader->Release();
+		tc->pixelShader->Release();
+	}
 
 	device->Release();
 
@@ -201,13 +214,13 @@ ID3D11Buffer* Game::createIndexBuffer(int indeces[], int indecesSize) {
 	return ib;
 }
 
-int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize, 
+int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	DirectX::XMFLOAT4* colors, 
-	int* indeces, int indecesSize
+	int* indexes, int indexesSize
 ) {
 	HRESULT res;
 
-	D3D11_BUFFER_DESC dataBufDesc = {};
+ 	D3D11_BUFFER_DESC dataBufDesc = {};
 	dataBufDesc.Usage = D3D11_USAGE_DEFAULT;
 	dataBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	dataBufDesc.CPUAccessFlags = 0;
@@ -247,19 +260,20 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	ID3D11Buffer* vb;
 	device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);*/
 
-	ID3D11Buffer* ib = createIndexBuffer(indeces, indecesSize);
+	ID3D11Buffer* ib = createIndexBuffer(indexes, indexesSize);
 
 	ID3D11Buffer* vBuffers[] = { pb, cb };
 	UINT strides[] = { 16, 16 };
 	UINT offsets[] = { 0, 0 };
-
-	context->IASetInputLayout(component.layout);
-	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-	context->IASetVertexBuffers(0, 2, vBuffers, strides, offsets);
-	context->VSSetShader(component.vertexShader, nullptr, 0);
-	context->PSSetShader(component.pixelShader, nullptr, 0);
-
+	
+	for (TriangleComponent* tc : components) {
+		context->IASetInputLayout(tc->layout);
+		context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+		context->IASetVertexBuffers(0, 2, vBuffers, strides, offsets);
+		context->VSSetShader(tc->vertexShader, nullptr, 0);
+		context->PSSetShader(tc->pixelShader, nullptr, 0);
+	}
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;
@@ -280,7 +294,7 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	viewport.MaxDepth = 1.0f;
 
 	context->RSSetViewports(1, &viewport);
-	context->OMSetRenderTargets(1, &rtv, nullptr);
+	context->OMSetRenderTargets(1, &rtv, nullptr); 
 }
 
 int Game::prepareResources() {
