@@ -89,12 +89,6 @@ struct ConstantBuffer
 	XMMATRIX mProjection;
 };
 
-struct SimpleVertex
-{
-	XMFLOAT3 Pos;
-	XMFLOAT4 Color;
-};
-
 Game::Game(HINSTANCE hInstance) : 
 	positions {
 		XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
@@ -121,7 +115,7 @@ Game::Game(HINSTANCE hInstance) :
 		components.push_back(new TriangleComponent(positions, colors, std::size(positions), triIndexes));
 	}*/
 
-	component = new TriangleComponent();
+	component = new CubeComponent();
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
@@ -132,15 +126,7 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 	/*for (GameComponent* tc : components) {
 		((TriangleComponent*) tc)->initialize(display, device);
 	}*/
-	((TriangleComponent*) component)->initialize(display, device);
-
-	// points example
-	/*DirectX::XMFLOAT4 points[8] = {
-		XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),	XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	};*/
+	component->initialize(display, device);
 
 	prepareFrame2(positions, std::size(positions),
 		colors,
@@ -181,7 +167,6 @@ void Game::draw() {
 	totalTime += deltaTime;
 	frameCount++;
 
-
 	if (totalTime > 1.0f) {
 		float fps = frameCount / totalTime;
 
@@ -203,7 +188,7 @@ void Game::draw() {
 
 	annotation->BeginEvent(L"BeginDraw");
 	//context->DrawIndexed(6, 0, 0);
-	context->DrawIndexed(18, 0, 0);
+	context->DrawIndexed(component->getIndexesSize(), 0, 0);
 	annotation->EndEvent();
 
 	//bool s_EnableVSync = true;
@@ -218,8 +203,8 @@ void Game::destroyResources() {
 		((TriangleComponent*)tc)->pixelShader->Release();
 	}*/
 
-	((TriangleComponent*) component)->vertexShader->Release();
-	((TriangleComponent*) component)->pixelShader->Release();
+	component->vertexShader->Release();
+	component->pixelShader->Release();
 
 	device->Release();
 
@@ -317,85 +302,24 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 ) {
 	HRESULT res;
 
-	SimpleVertex vertices[] =
-	{
-		{ XMFLOAT3( 0.0f,  1.5f,  0.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f,  0.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3( 1.0f,  0.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f,  0.0f,  1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 1.0f,  0.0f,  1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) }
-	};
-
-	/*D3D11_BUFFER_DESC dataBufDesc = {};
-	dataBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	dataBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	dataBufDesc.CPUAccessFlags = 0;
-	dataBufDesc.MiscFlags = 0;
-	dataBufDesc.StructureByteStride = 0;
-	dataBufDesc.ByteWidth = sizeof(XMFLOAT4) * positionsSize;
-
-	ID3D11Buffer* pb;
-	ID3D11Buffer* cb;
-
-	D3D11_SUBRESOURCE_DATA positionsData = {};
-	positionsData.pSysMem = positions;
-	positionsData.SysMemPitch = 0;
-	positionsData.SysMemSlicePitch = 0;
-	D3D11_SUBRESOURCE_DATA colorsData = {};
-	colorsData.pSysMem = colors;
-	colorsData.SysMemPitch = 0;
-	colorsData.SysMemSlicePitch = 0;
-
-	device->CreateBuffer(&dataBufDesc, &positionsData, &pb);
-	device->CreateBuffer(&dataBufDesc, &colorsData, &cb);*/
-
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * 5;
+	bd.ByteWidth = sizeof(SimpleVertex) * component->getPointsSize();
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = vertices;
+	InitData.pSysMem = component->getPoints();
 
 	ID3D11Buffer* vertexBuff;
 	res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
 
-	// points example
-	/*D3D11_BUFFER_DESC vertexBufDesc = {};
-	vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufDesc.CPUAccessFlags = 0;
-	vertexBufDesc.MiscFlags = 0;
-	vertexBufDesc.StructureByteStride = 0;
-	vertexBufDesc.ByteWidth = sizeof(XMFLOAT4) * std::size(points);
-
-	D3D11_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pSysMem = points;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	ID3D11Buffer* vb;
-	device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);*/
-
-	//ID3D11Buffer* ib = createIndexBuffer(indexes, indexesSize);
-
-	WORD indices[] =
-	{
-		0,2,1,
-		0,3,4,
-		0,1,3,
-		0,4,2,
-
-		1,2,3,
-		2,4,3,
-	};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * 18;
+	bd.ByteWidth = sizeof(WORD) * component->getIndexesSize();
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
-	InitData.pSysMem = indices;
+	InitData.pSysMem = component->getIndexes();
 
 	ID3D11Buffer* indexBuff;
 	res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
@@ -424,7 +348,7 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 	device->CreateBuffer(&constantBufDesc, NULL, &constBuff);
 	/*-------------------------Constant Buffer------------------------------*/
 
-	context->IASetInputLayout(((TriangleComponent*) component)->layout);
+	context->IASetInputLayout(component->layout);
 	/*ID3D11Buffer* vBuffers[] = { pb, cb };
 	UINT strides[] = { 16, 16 };
 	UINT offsets[] = { 0, 0 };
@@ -437,8 +361,8 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 		context->VSSetShader(((TriangleComponent*)tc)->vertexShader, nullptr, 0);
 		context->PSSetShader(((TriangleComponent*)tc)->pixelShader, nullptr, 0);
 	}*/
-	context->VSSetShader(((TriangleComponent*) component)->vertexShader, nullptr, 0);
-	context->PSSetShader(((TriangleComponent*) component)->pixelShader, nullptr, 0);
+	context->VSSetShader(component->vertexShader, nullptr, 0);
+	context->PSSetShader(component->pixelShader, nullptr, 0);
 	context->VSSetConstantBuffers(0, 1, &constBuff);
 
 	context->VSSetConstantBuffers(0, 1, &constBuff);

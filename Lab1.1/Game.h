@@ -7,6 +7,8 @@
 #include "DisplayWin32.h"
 //#include "InputDevice.h"
 #include "TriangleComponent.h"
+#include "PyramidComponent.h"
+#include "CubeComponent.h"
 #include "Keys.h"
 #include <vector>
 #include "DisplayWin32.h"
