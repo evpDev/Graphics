@@ -28,10 +28,6 @@
 
 using namespace DirectX;
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
-	return Game::messageHandler(hwnd, umessage, wparam, lparam);
-}
-
 LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
 	//auto id = std::this_thread::get_id();
 	//std::cout << "WndProc id: " << id << "\n";
@@ -59,7 +55,15 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 		// If a key is pressed send it to the input object so it can record that state.
 		std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
 
-		if (static_cast<unsigned int>(wparam) == 27) PostQuitMessage(0);
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::A)) {
+			projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
+		}
+
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::D)) {
+			projection = XMMatrixOrthographicLH((float)5, (float)5, 0.01f, 1000.0f);
+		}
+
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Escape)) PostQuitMessage(0);
 		return 0;
 	}
 
@@ -77,6 +81,19 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 	}
 	}
 }
+
+struct ConstantBuffer
+{
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+};
+
+struct SimpleVertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+};
 
 Game::Game(HINSTANCE hInstance) : 
 	positions {
@@ -98,11 +115,13 @@ Game::Game(HINSTANCE hInstance) :
 	float totalTime = 0;
 	unsigned int frameCount = 0;
 
-	for (int i = 0; i < 2; i++) {
+	/*for (int i = 0; i < 2; i++) {
 		int triIndexes[3];
 		std::copy(indexes + 3 * i, indexes + 3 * i + 3, triIndexes);
 		components.push_back(new TriangleComponent(positions, colors, std::size(positions), triIndexes));
-	}
+	}*/
+
+	component = new TriangleComponent();
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
@@ -110,9 +129,10 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 
 	prepareResources();
 	
-	for (GameComponent* tc : components) {
+	/*for (GameComponent* tc : components) {
 		((TriangleComponent*) tc)->initialize(display, device);
-	}
+	}*/
+	((TriangleComponent*) component)->initialize(display, device);
 
 	// points example
 	/*DirectX::XMFLOAT4 points[8] = {
@@ -122,9 +142,11 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 		XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	};*/
 
-	prepareFrame(positions, std::size(positions),
+	prepareFrame2(positions, std::size(positions),
 		colors,
 		indexes, std::size(indexes));
+
+	initMatrixes();
 
 	return 0;
 }
@@ -146,6 +168,7 @@ void Game::run() {
 			isExitRequested = true;
 		}
 
+		setMatrixes();
 		draw();
 	}
 }
@@ -171,14 +194,16 @@ void Game::draw() {
 		frameCount = 0;
 	}
 
-	float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
+	//float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
+	float color[] = { 0.0f, 0.0f, 1.0f, 1.0f };
 
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 
 	context->ClearRenderTargetView(rtv, color);
 
 	annotation->BeginEvent(L"BeginDraw");
-	context->DrawIndexed(6, 0, 0);
+	//context->DrawIndexed(6, 0, 0);
+	context->DrawIndexed(18, 0, 0);
 	annotation->EndEvent();
 
 	//bool s_EnableVSync = true;
@@ -188,10 +213,13 @@ void Game::draw() {
 }
 
 void Game::destroyResources() {
-	for (GameComponent* tc : components) {
+	/*for (GameComponent* tc : components) {
 		((TriangleComponent*)tc)->vertexShader->Release();
 		((TriangleComponent*)tc)->pixelShader->Release();
-	}
+	}*/
+
+	((TriangleComponent*) component)->vertexShader->Release();
+	((TriangleComponent*) component)->pixelShader->Release();
 
 	device->Release();
 
@@ -246,23 +274,6 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	device->CreateBuffer(&dataBufDesc, &positionsData, &pb);
 	device->CreateBuffer(&dataBufDesc, &colorsData, &cb);
 
-	// points example
-	/*D3D11_BUFFER_DESC vertexBufDesc = {};
-	vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufDesc.CPUAccessFlags = 0;
-	vertexBufDesc.MiscFlags = 0;
-	vertexBufDesc.StructureByteStride = 0;
-	vertexBufDesc.ByteWidth = sizeof(XMFLOAT4) * std::size(points);
-
-	D3D11_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pSysMem = points;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	ID3D11Buffer* vb;
-	device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);*/
-
 	ID3D11Buffer* ib = createIndexBuffer(indexes, indexesSize);
 
 	ID3D11Buffer* vBuffers[] = { pb, cb };
@@ -281,6 +292,160 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;
 	rastDesc.FillMode = D3D11_FILL_SOLID;
+
+	ID3D11RasterizerState* rastState;
+	res = device->CreateRasterizerState(&rastDesc, &rastState); ZCHECK(res);
+
+	context->RSSetState(rastState);
+
+
+	D3D11_VIEWPORT viewport = {};
+	viewport.Width = static_cast<float>(display->screenWidth);
+	viewport.Height = static_cast<float>(display->screenHeight);
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.MinDepth = 0;
+	viewport.MaxDepth = 1.0f;
+
+	context->RSSetViewports(1, &viewport);
+	context->OMSetRenderTargets(1, &rtv, nullptr);
+}
+
+int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
+	DirectX::XMFLOAT4* colors,
+	int* indexes, int indexesSize
+) {
+	HRESULT res;
+
+	SimpleVertex vertices[] =
+	{
+		{ XMFLOAT3( 0.0f,  1.5f,  0.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f,  0.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3( 1.0f,  0.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f,  0.0f,  1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3( 1.0f,  0.0f,  1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) }
+	};
+
+	/*D3D11_BUFFER_DESC dataBufDesc = {};
+	dataBufDesc.Usage = D3D11_USAGE_DEFAULT;
+	dataBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	dataBufDesc.CPUAccessFlags = 0;
+	dataBufDesc.MiscFlags = 0;
+	dataBufDesc.StructureByteStride = 0;
+	dataBufDesc.ByteWidth = sizeof(XMFLOAT4) * positionsSize;
+
+	ID3D11Buffer* pb;
+	ID3D11Buffer* cb;
+
+	D3D11_SUBRESOURCE_DATA positionsData = {};
+	positionsData.pSysMem = positions;
+	positionsData.SysMemPitch = 0;
+	positionsData.SysMemSlicePitch = 0;
+	D3D11_SUBRESOURCE_DATA colorsData = {};
+	colorsData.pSysMem = colors;
+	colorsData.SysMemPitch = 0;
+	colorsData.SysMemSlicePitch = 0;
+
+	device->CreateBuffer(&dataBufDesc, &positionsData, &pb);
+	device->CreateBuffer(&dataBufDesc, &colorsData, &cb);*/
+
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(SimpleVertex) * 5;
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = vertices;
+
+	ID3D11Buffer* vertexBuff;
+	res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
+
+	// points example
+	/*D3D11_BUFFER_DESC vertexBufDesc = {};
+	vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufDesc.CPUAccessFlags = 0;
+	vertexBufDesc.MiscFlags = 0;
+	vertexBufDesc.StructureByteStride = 0;
+	vertexBufDesc.ByteWidth = sizeof(XMFLOAT4) * std::size(points);
+
+	D3D11_SUBRESOURCE_DATA vertexData = {};
+	vertexData.pSysMem = points;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	ID3D11Buffer* vb;
+	device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);*/
+
+	//ID3D11Buffer* ib = createIndexBuffer(indexes, indexesSize);
+
+	WORD indices[] =
+	{
+		0,2,1,
+		0,3,4,
+		0,1,3,
+		0,4,2,
+
+		1,2,3,
+		2,4,3,
+	};
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(WORD) * 18;
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+	InitData.pSysMem = indices;
+
+	ID3D11Buffer* indexBuff;
+	res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
+
+	UINT stride = sizeof(SimpleVertex);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
+	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	/*-------------------------Constant Buffer------------------------------*/
+	D3D11_BUFFER_DESC constantBufDesc = {};
+	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
+	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufDesc.CPUAccessFlags = 0;
+	//constantBufDesc.MiscFlags = 0;
+	//constantBufDesc.StructureByteStride = 0;
+	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
+
+	/*D3D11_SUBRESOURCE_DATA indexData = {};
+	indexData.pSysMem = indeces;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;*/
+
+	//ID3D11Buffer* constBuff;
+	device->CreateBuffer(&constantBufDesc, NULL, &constBuff);
+	/*-------------------------Constant Buffer------------------------------*/
+
+	context->IASetInputLayout(((TriangleComponent*) component)->layout);
+	/*ID3D11Buffer* vBuffers[] = { pb, cb };
+	UINT strides[] = { 16, 16 };
+	UINT offsets[] = { 0, 0 };
+
+	for (GameComponent* tc : components) {
+		 context->IASetInputLayout(((TriangleComponent*)tc)->layout);
+		 context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		 context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+		 context->IASetVertexBuffers(0, 2, vBuffers, strides, offsets);
+		context->VSSetShader(((TriangleComponent*)tc)->vertexShader, nullptr, 0);
+		context->PSSetShader(((TriangleComponent*)tc)->pixelShader, nullptr, 0);
+	}*/
+	context->VSSetShader(((TriangleComponent*) component)->vertexShader, nullptr, 0);
+	context->PSSetShader(((TriangleComponent*) component)->pixelShader, nullptr, 0);
+	context->VSSetConstantBuffers(0, 1, &constBuff);
+
+	context->VSSetConstantBuffers(0, 1, &constBuff);
+
+	CD3D11_RASTERIZER_DESC rastDesc = {};
+	rastDesc.CullMode = D3D11_CULL_BACK;// D3D11_CULL_NONE;
+	rastDesc.FillMode = D3D11_FILL_SOLID;//;D3D11_FILL_WIREFRAME
 
 	ID3D11RasterizerState* rastState;
 	res = device->CreateRasterizerState(&rastDesc, &rastState); ZCHECK(res);
@@ -355,4 +520,46 @@ int Game::prepareResources() {
 
 void Game::endFrame() {
 	swapChain1->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+	//swapChain1->Present(0, 0);
+}
+
+HRESULT Game::initMatrixes() {
+	RECT rc;
+	GetClientRect(display->hWnd, &rc);
+	UINT width = rc.right - rc.left;
+	UINT height = rc.bottom - rc.top;
+
+	world = XMMatrixIdentity();
+
+	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	view = XMMatrixLookAtLH(Eye, At, Up);
+
+	//projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
+	projection = XMMatrixOrthographicLH((float) 5, (float) 5, 0.01f, 1000.0f);
+
+	return S_OK;
+}
+
+void Game::setMatrixes() {
+	static float t = 0.0f;
+	/*if (g_driverType == D3D_DRIVER_TYPE_REFERENCE) {
+		t += (float)XM_PI * 0.0125f;
+	} else {*/
+		static DWORD dwTimeStart = 0;
+		DWORD dwTimeCur = GetTickCount();
+		if (dwTimeStart == 0)
+			dwTimeStart = dwTimeCur;
+		t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	//}
+
+	world = XMMatrixRotationY(t);
+
+	ConstantBuffer cb;
+	cb.mWorld = XMMatrixTranspose(world);
+	cb.mView = XMMatrixTranspose(view);
+	cb.mProjection = XMMatrixTranspose(projection);
+
+	context->UpdateSubresource(this->constBuff, 0, NULL, &cb, 0, 0);
 }

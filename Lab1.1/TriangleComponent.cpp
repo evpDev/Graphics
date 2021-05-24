@@ -134,9 +134,13 @@ int TriangleComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<
 
 	//ID3D11InputLayout* layout2;
 
-	D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
+	/*D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		D3D11_INPUT_ELEMENT_DESC {"COLOR",	  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};*/
+	D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
+		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,	 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
+		D3D11_INPUT_ELEMENT_DESC {"COLOR",	  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 	device->CreateInputLayout(inputElements2, 2, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);
 

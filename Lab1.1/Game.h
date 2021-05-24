@@ -5,18 +5,19 @@
 //#include <wrl.h>
 
 #include "DisplayWin32.h"
-#include "InputDevice.h"
-#include <vector>
+//#include "InputDevice.h"
 #include "TriangleComponent.h"
+#include "Keys.h"
+#include <vector>
 #include "DisplayWin32.h"
 #pragma comment(lib, "dxgi.lib")
 #include <chrono>
 
 #include <d3d.h>
-#include <d3d11.h>
+//#include <d3d11.h>
 #include <d3d11_1.h>
 #include <d3d11_4.h>
-#include <directxmath.h>
+//#include <directxmath.h>
 
 class Game {
 public:
@@ -38,13 +39,17 @@ public:
 	float totalTime;
 	unsigned int frameCount; // there is no in scheme
 	DisplayWin32* display;
-	InputDevice inputDevice;
 	std::vector<GameComponent*> components;
-	//TriangleComponent component;
+	GameComponent* component;
 	ID3D11Buffer* createIndexBuffer(int indeces[], int indecesSize);
 	DirectX::XMFLOAT4 positions[4];
 	DirectX::XMFLOAT4 colors[4];
 	int indexes[6];
+	DirectX::XMMATRIX world;
+	DirectX::XMMATRIX view;
+	DirectX::XMMATRIX projection;
+	ID3D11Buffer* constBuff;
+	//InputDevice* inputDevice;
 
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();
@@ -53,7 +58,7 @@ public:
 	void endFrame();
 	void exit();
 	int initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow);
-	static LRESULT messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);
+	LRESULT messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);
 	int prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
 	//int prepareFrame(TriangleComponent* tc);
 	int prepareResources();
@@ -61,4 +66,8 @@ public:
 	void run();
 	void update();
 	void updateInternal();
+
+	HRESULT initMatrixes();
+	void setMatrixes();
+	int prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
 };
