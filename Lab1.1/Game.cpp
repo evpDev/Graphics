@@ -55,12 +55,38 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 		// If a key is pressed send it to the input object so it can record that state.
 		std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
 
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::R)) {
+			if (isPerspectiveView) {
+				isPerspectiveView = false;
+				projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
+			} else {
+				isPerspectiveView = true;
+				projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
+			}
+		}
+
 		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::A)) {
-			projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
+			world = world * XMMatrixRotationY(0.04);
 		}
 
 		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::D)) {
-			projection = XMMatrixOrthographicLH((float)5, (float)5, 0.01f, 1000.0f);
+			world = world * XMMatrixRotationY(-0.04);
+		}
+
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::E)) {
+			world = world * XMMatrixRotationZ(0.04);
+		}
+
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Q)) {
+			world = world * XMMatrixRotationZ(-0.04);
+		}
+
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::W)) {
+			world = world * XMMatrixRotationX(0.04);
+		}
+
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::S)) {
+			world = world * XMMatrixRotationX(-0.04);
 		}
 
 		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Escape)) PostQuitMessage(0);
@@ -71,6 +97,38 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 	case WM_KEYUP:
 	{
 		// If a key is released then send it to the input object so it can unset the state for that key.
+		return 0;
+	}
+
+	case WM_MOUSEWHEEL: {
+		if (static_cast<unsigned int>(wparam) == 4287102976) {
+			if (isPerspectiveView) {
+				perspectScale += 0.5;
+				XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, perspectScale, 0.0f);
+				XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				view = XMMatrixLookAtLH(Eye, At, Up);
+				projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
+			} else {
+				orthoScale += 0.2;
+				projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
+			}
+		}
+
+		if (static_cast<unsigned int>(wparam) == 7864320) {
+			if (isPerspectiveView) {
+				perspectScale -= 0.5;
+				XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, perspectScale, 0.0f);
+				XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				view = XMMatrixLookAtLH(Eye, At, Up);
+				projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
+			} else {
+				orthoScale -= 0.2;
+				projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
+			}
+		}
+		std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
 		return 0;
 	}
 
@@ -108,6 +166,9 @@ Game::Game(HINSTANCE hInstance) :
 	display = new DisplayWin32(name, hInstance, 800, 800);
 	float totalTime = 0;
 	unsigned int frameCount = 0;
+	orthoScale = 5;
+	perspectScale = -5;
+	isPerspectiveView = false;
 
 	/*for (int i = 0; i < 2; i++) {
 		int triIndexes[3];
@@ -335,8 +396,8 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
 	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufDesc.CPUAccessFlags = 0;
-	//constantBufDesc.MiscFlags = 0;
-	//constantBufDesc.StructureByteStride = 0;
+	constantBufDesc.MiscFlags = 0;
+	constantBufDesc.StructureByteStride = 0;
 	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
 
 	/*D3D11_SUBRESOURCE_DATA indexData = {};
@@ -368,14 +429,13 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 	context->VSSetConstantBuffers(0, 1, &constBuff);
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
-	rastDesc.CullMode = D3D11_CULL_BACK;// D3D11_CULL_NONE;
-	rastDesc.FillMode = D3D11_FILL_SOLID;//;D3D11_FILL_WIREFRAME
+	rastDesc.CullMode = D3D11_CULL_FRONT;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT
+	rastDesc.FillMode = D3D11_FILL_SOLID;//D3D11_FILL_SOLID;D3D11_FILL_WIREFRAME
 
 	ID3D11RasterizerState* rastState;
 	res = device->CreateRasterizerState(&rastDesc, &rastState); ZCHECK(res);
 
 	context->RSSetState(rastState);
-
 
 	D3D11_VIEWPORT viewport = {};
 	viewport.Width = static_cast<float>(display->screenWidth);
@@ -455,13 +515,13 @@ HRESULT Game::initMatrixes() {
 
 	world = XMMatrixIdentity();
 
-	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -8.0f, 0.0f);
 	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	view = XMMatrixLookAtLH(Eye, At, Up);
 
 	//projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
-	projection = XMMatrixOrthographicLH((float) 5, (float) 5, 0.01f, 1000.0f);
+	projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
 
 	return S_OK;
 }
@@ -478,7 +538,7 @@ void Game::setMatrixes() {
 		t = (dwTimeCur - dwTimeStart) / 1000.0f;
 	//}
 
-	world = XMMatrixRotationY(t);
+	/*world = world * XMMatrixRotationY(0.01);*/
 
 	ConstantBuffer cb;
 	cb.mWorld = XMMatrixTranspose(world);

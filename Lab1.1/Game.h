@@ -52,6 +52,9 @@ public:
 	DirectX::XMMATRIX projection;
 	ID3D11Buffer* constBuff;
 	//InputDevice* inputDevice;
+	float orthoScale;
+	float perspectScale;
+	boolean isPerspectiveView;
 
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();
