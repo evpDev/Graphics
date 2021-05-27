@@ -1,8 +1,8 @@
 #pragma once
-#include "PyramidComponent.h"
+#include "GameComponent.h"
 #include "ProjectUtils.h"
 
-class CubeComponent : public PyramidComponent {
+class CubeComponent : public GameComponent {
 public:
 	SimpleVertex points[8];
 	WORD indexes[36];

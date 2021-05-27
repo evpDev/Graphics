@@ -141,28 +141,7 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 	}
 }
 
-//struct ConstantBuffer
-//{
-//	XMMATRIX mWorld;
-//	XMMATRIX mView;
-//	XMMATRIX mProjection;
-//};
-
-Game::Game(HINSTANCE hInstance) : 
-	positions {
-		XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-		XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
-		XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
-		XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
-	},
-	colors {
-		XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-	},
-	indexes { 0,1,2, 1,0,3 }
-{
+Game::Game(HINSTANCE hInstance) {
 	name = L"Game";
 	display = new DisplayWin32(name, hInstance, 800, 800);
 	float totalTime = 0;
@@ -171,37 +150,25 @@ Game::Game(HINSTANCE hInstance) :
 	perspectScale = -5;
 	isPerspectiveView = false;
 
-	/*for (int i = 0; i < 2; i++) {
-		int triIndexes[3];
-		std::copy(indexes + 3 * i, indexes + 3 * i + 3, triIndexes);
-		components.push_back(new TriangleComponent(positions, colors, std::size(positions), triIndexes));
-	}*/
-
-	/*component = new CubeComponent();
-	planeComponent = new PlaneComponent();*/
-	components.push_back(new CubeComponent());
 	components.push_back(new PlaneComponent());
+	//components.push_back(new CubeComponent());
+	//components.push_back(new PyramidComponent());
+	int indxes[] = { 0,1,2 };
+	components.push_back(new TriangleComponent(indxes));
+	int indxes2[] = { 1,0,3 };
+	components.push_back(new TriangleComponent(indxes2));
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 	HRESULT res;
 
 	prepareResources();
-	
-	/*for (GameComponent* tc : components) {
-		((TriangleComponent*) tc)->initialize(display, device);
-	}*/
-	/*component->initialize(display, device);
-	planeComponent->initialize(display, device);*/
 
 	for (GameComponent* tc : components) {
 		tc->initialize(display, device);
 	}
 
-	prepareFrame2(positions, std::size(positions),
-		colors,
-		indexes, std::size(indexes));
-
+	prepareFrame();
 	initMatrixes();
 
 	return 0;
@@ -248,7 +215,6 @@ void Game::draw() {
 		frameCount = 0;
 	}
 
-	//float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
 	float color[] = { 0.0f, 0.0f, 1.0f, 1.0f };
 
 	context->OMSetRenderTargets(1, &rtv, nullptr);
@@ -256,13 +222,7 @@ void Game::draw() {
 	context->ClearRenderTargetView(rtv, color);
 
 	annotation->BeginEvent(L"BeginDraw");
-	//context->DrawIndexed(6, 0, 0);
-	/*((PlaneComponent*)planeComponent)->draw(context, device, &constBuff);
-	setMatrixes();
-	context->DrawIndexed(planeComponent->getIndexesSize(), 0, 0);
-	((CubeComponent*)component)->draw(context, device, &constBuff);
-	setMatrixes();
-	context->DrawIndexed(component->getIndexesSize(), 0, 0);*/
+
 	for (GameComponent* gc : components) {
 		gc->draw(context, device, &constBuff);
 		setMatrixes();
@@ -276,187 +236,8 @@ void Game::draw() {
 	endFrame();
 }
 
-void Game::destroyResources() {
-	/*for (GameComponent* tc : components) {
-		((TriangleComponent*)tc)->vertexShader->Release();
-		((TriangleComponent*)tc)->pixelShader->Release();
-	}*/
-
-	/*component->vertexShader->Release();
-	component->pixelShader->Release();*/
-
-	for (GameComponent* gc : components) {
-		gc->vertexShader->Release();
-		gc->pixelShader->Release();
-	}
-
-	device->Release();
-
-	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-}
-
-ID3D11Buffer* Game::createIndexBuffer(int indeces[], int indecesSize) {
-	D3D11_BUFFER_DESC indexBufDesc = {};
-	indexBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufDesc.CPUAccessFlags = 0;
-	indexBufDesc.MiscFlags = 0;
-	indexBufDesc.StructureByteStride = 0;
-	indexBufDesc.ByteWidth = sizeof(int) * indecesSize;
-
-	D3D11_SUBRESOURCE_DATA indexData = {};
-	indexData.pSysMem = indeces;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
-
-	ID3D11Buffer* ib;
-	device->CreateBuffer(&indexBufDesc, &indexData, &ib);
-	return ib;
-}
-
-int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
-	DirectX::XMFLOAT4* colors, 
-	int* indexes, int indexesSize
-) {
+int Game::prepareFrame() {
 	HRESULT res;
-
- 	D3D11_BUFFER_DESC dataBufDesc = {};
-	dataBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	dataBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	dataBufDesc.CPUAccessFlags = 0;
-	dataBufDesc.MiscFlags = 0;
-	dataBufDesc.StructureByteStride = 0;
-	dataBufDesc.ByteWidth = sizeof(XMFLOAT4) * positionsSize;
-
-	ID3D11Buffer* pb;
-	ID3D11Buffer* cb;
-
-	D3D11_SUBRESOURCE_DATA positionsData = {};
-	positionsData.pSysMem = positions;
-	positionsData.SysMemPitch = 0;
-	positionsData.SysMemSlicePitch = 0;
-	D3D11_SUBRESOURCE_DATA colorsData = {};
-	colorsData.pSysMem = colors;
-	colorsData.SysMemPitch = 0;
-	colorsData.SysMemSlicePitch = 0;
-
-	device->CreateBuffer(&dataBufDesc, &positionsData, &pb);
-	device->CreateBuffer(&dataBufDesc, &colorsData, &cb);
-
-	ID3D11Buffer* ib = createIndexBuffer(indexes, indexesSize);
-
-	ID3D11Buffer* vBuffers[] = { pb, cb };
-	UINT strides[] = { 16, 16 };
-	UINT offsets[] = { 0, 0 };
-	
-	for (GameComponent* tc : components) {
-		context->IASetInputLayout(((TriangleComponent*)tc)->layout);
-		context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-		context->IASetVertexBuffers(0, 2, vBuffers, strides, offsets);
-		context->VSSetShader(((TriangleComponent*)tc)->vertexShader, nullptr, 0);
-		context->PSSetShader(((TriangleComponent*)tc)->pixelShader, nullptr, 0);
-	}
-
-	CD3D11_RASTERIZER_DESC rastDesc = {};
-	rastDesc.CullMode = D3D11_CULL_NONE;
-	rastDesc.FillMode = D3D11_FILL_SOLID;
-
-	ID3D11RasterizerState* rastState;
-	res = device->CreateRasterizerState(&rastDesc, &rastState); ZCHECK(res);
-
-	context->RSSetState(rastState);
-
-
-	D3D11_VIEWPORT viewport = {};
-	viewport.Width = static_cast<float>(display->screenWidth);
-	viewport.Height = static_cast<float>(display->screenHeight);
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0;
-	viewport.MaxDepth = 1.0f;
-
-	context->RSSetViewports(1, &viewport);
-	context->OMSetRenderTargets(1, &rtv, nullptr);
-}
-
-int Game::intermed(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize) {
-	HRESULT res;
-
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * component->getPointsSize();
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = component->getPoints();
-
-	ID3D11Buffer* vertexBuff;
-	res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
-
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * component->getIndexesSize();
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	InitData.pSysMem = component->getIndexes();
-
-	ID3D11Buffer* indexBuff;
-	res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
-
-	UINT stride = sizeof(SimpleVertex);
-	UINT offset = 0;
-	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
-	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_LINELIST
-
-	/*-------------------------Constant Buffer------------------------------*/
-	D3D11_BUFFER_DESC constantBufDesc = {};
-	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	constantBufDesc.CPUAccessFlags = 0;
-	constantBufDesc.MiscFlags = 0;
-	constantBufDesc.StructureByteStride = 0;
-	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
-
-	/*D3D11_SUBRESOURCE_DATA indexData = {};
-	indexData.pSysMem = indeces;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;*/
-
-	//ID3D11Buffer* constBuff;
-	device->CreateBuffer(&constantBufDesc, NULL, &constBuff);
-	/*-------------------------Constant Buffer------------------------------*/
-
-	context->IASetInputLayout(component->layout);
-	/*ID3D11Buffer* vBuffers[] = { pb, cb };
-	UINT strides[] = { 16, 16 };
-	UINT offsets[] = { 0, 0 };
-
-	for (GameComponent* tc : components) {
-		 context->IASetInputLayout(((TriangleComponent*)tc)->layout);
-		 context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		 context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-		 context->IASetVertexBuffers(0, 2, vBuffers, strides, offsets);
-		context->VSSetShader(((TriangleComponent*)tc)->vertexShader, nullptr, 0);
-		context->PSSetShader(((TriangleComponent*)tc)->pixelShader, nullptr, 0);
-	}*/
-	context->VSSetShader(component->vertexShader, nullptr, 0);
-	context->PSSetShader(component->pixelShader, nullptr, 0);
-	context->VSSetConstantBuffers(0, 1, &constBuff);
-}
-
-int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
-	DirectX::XMFLOAT4* colors,
-	int* indexes, int indexesSize
-) {
-	HRESULT res;
-
-	//intermed(positions, positionsSize, colors, indexes, indexesSize);
-	
-
-	//context->VSSetConstantBuffers(0, 1, &constBuff);
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_FRONT;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT
@@ -532,9 +313,18 @@ int Game::prepareResources() {
 
 }
 
+void Game::destroyResources() {
+	for (GameComponent* gc : components) {
+		gc->vertexShader->Release();
+		gc->pixelShader->Release();
+	}
+
+	device->Release();
+	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+}
+
 void Game::endFrame() {
 	swapChain1->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
-	//swapChain1->Present(0, 0);
 }
 
 HRESULT Game::initMatrixes() {
@@ -558,17 +348,11 @@ HRESULT Game::initMatrixes() {
 
 void Game::setMatrixes() {
 	static float t = 0.0f;
-	/*if (g_driverType == D3D_DRIVER_TYPE_REFERENCE) {
-		t += (float)XM_PI * 0.0125f;
-	} else {*/
-		static DWORD dwTimeStart = 0;
-		DWORD dwTimeCur = GetTickCount();
-		if (dwTimeStart == 0)
-			dwTimeStart = dwTimeCur;
-		t = (dwTimeCur - dwTimeStart) / 1000.0f;
-	//}
-
-	/*world = world * XMMatrixRotationY(0.01);*/
+	static DWORD dwTimeStart = 0;
+	DWORD dwTimeCur = GetTickCount();
+	if (dwTimeStart == 0)
+		dwTimeStart = dwTimeCur;
+	t = (dwTimeCur - dwTimeStart) / 1000.0f;
 
 	ConstantBuffer cb;
 	cb.mWorld = XMMatrixTranspose(world);

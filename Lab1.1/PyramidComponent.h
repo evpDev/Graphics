@@ -1,6 +1,7 @@
 #pragma once
 #include <wrl.h>
 #include "GameComponent.h"
+#include "ProjectUtils.h"
 #include "DisplayWin32.h"
 
 #include <d3d11.h>

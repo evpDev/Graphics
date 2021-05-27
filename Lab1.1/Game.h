@@ -44,10 +44,9 @@ public:
 	DisplayWin32* display;
 	std::vector<GameComponent*> components;
 	GameComponent* component;
-	ID3D11Buffer* createIndexBuffer(int indeces[], int indecesSize);
-	DirectX::XMFLOAT4 positions[4];
-	DirectX::XMFLOAT4 colors[4];
-	int indexes[6];
+	//DirectX::XMFLOAT4 positions[4];
+	//DirectX::XMFLOAT4 colors[4];
+	//int indexes[6];
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX view;
 	DirectX::XMMATRIX projection;
@@ -66,8 +65,6 @@ public:
 	void exit();
 	int initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow);
 	LRESULT messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);
-	int prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
-	//int prepareFrame(TriangleComponent* tc);
 	int prepareResources();
 	void restoreTargets();
 	void run();
@@ -76,6 +73,5 @@ public:
 
 	HRESULT initMatrixes();
 	void setMatrixes();
-	int prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
-	int intermed(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
+	int prepareFrame();
 };
