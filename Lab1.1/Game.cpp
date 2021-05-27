@@ -73,20 +73,21 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 			world = world * XMMatrixRotationY(-0.04);
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::E)) {
-			world = world * XMMatrixRotationZ(0.04);
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Q)) {
+			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationZ(0.04) * XMMatrixTranslation(0, 1, 0);
+			
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Q)) {
-			world = world * XMMatrixRotationZ(-0.04);
+		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::E)) {
+			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationZ(-0.04) * XMMatrixTranslation(0, 1, 0);
 		}
 
 		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::W)) {
-			world = world * XMMatrixRotationX(0.04);
+			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationX(0.04) * XMMatrixTranslation(0, 1, 0);
 		}
 
 		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::S)) {
-			world = world * XMMatrixRotationX(-0.04);
+			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationX(-0.04) * XMMatrixTranslation(0, 1, 0);
 		}
 
 		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Escape)) PostQuitMessage(0);
@@ -140,12 +141,12 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 	}
 }
 
-struct ConstantBuffer
-{
-	XMMATRIX mWorld;
-	XMMATRIX mView;
-	XMMATRIX mProjection;
-};
+//struct ConstantBuffer
+//{
+//	XMMATRIX mWorld;
+//	XMMATRIX mView;
+//	XMMATRIX mProjection;
+//};
 
 Game::Game(HINSTANCE hInstance) : 
 	positions {
@@ -176,7 +177,10 @@ Game::Game(HINSTANCE hInstance) :
 		components.push_back(new TriangleComponent(positions, colors, std::size(positions), triIndexes));
 	}*/
 
-	component = new CubeComponent();
+	/*component = new CubeComponent();
+	planeComponent = new PlaneComponent();*/
+	components.push_back(new CubeComponent());
+	components.push_back(new PlaneComponent());
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
@@ -187,7 +191,12 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 	/*for (GameComponent* tc : components) {
 		((TriangleComponent*) tc)->initialize(display, device);
 	}*/
-	component->initialize(display, device);
+	/*component->initialize(display, device);
+	planeComponent->initialize(display, device);*/
+
+	for (GameComponent* tc : components) {
+		tc->initialize(display, device);
+	}
 
 	prepareFrame2(positions, std::size(positions),
 		colors,
@@ -215,7 +224,6 @@ void Game::run() {
 			isExitRequested = true;
 		}
 
-		setMatrixes();
 		draw();
 	}
 }
@@ -249,7 +257,17 @@ void Game::draw() {
 
 	annotation->BeginEvent(L"BeginDraw");
 	//context->DrawIndexed(6, 0, 0);
-	context->DrawIndexed(component->getIndexesSize(), 0, 0);
+	/*((PlaneComponent*)planeComponent)->draw(context, device, &constBuff);
+	setMatrixes();
+	context->DrawIndexed(planeComponent->getIndexesSize(), 0, 0);
+	((CubeComponent*)component)->draw(context, device, &constBuff);
+	setMatrixes();
+	context->DrawIndexed(component->getIndexesSize(), 0, 0);*/
+	for (GameComponent* gc : components) {
+		gc->draw(context, device, &constBuff);
+		setMatrixes();
+		context->DrawIndexed(gc->getIndexesSize(), 0, 0);
+	}
 	annotation->EndEvent();
 
 	//bool s_EnableVSync = true;
@@ -264,8 +282,13 @@ void Game::destroyResources() {
 		((TriangleComponent*)tc)->pixelShader->Release();
 	}*/
 
-	component->vertexShader->Release();
-	component->pixelShader->Release();
+	/*component->vertexShader->Release();
+	component->pixelShader->Release();*/
+
+	for (GameComponent* gc : components) {
+		gc->vertexShader->Release();
+		gc->pixelShader->Release();
+	}
 
 	device->Release();
 
@@ -357,10 +380,7 @@ int Game::prepareFrame(DirectX::XMFLOAT4* positions, int positionsSize,
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 }
 
-int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
-	DirectX::XMFLOAT4* colors,
-	int* indexes, int indexesSize
-) {
+int Game::intermed(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize) {
 	HRESULT res;
 
 	D3D11_BUFFER_DESC bd;
@@ -389,7 +409,7 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_LINELIST
 
 	/*-------------------------Constant Buffer------------------------------*/
 	D3D11_BUFFER_DESC constantBufDesc = {};
@@ -425,8 +445,18 @@ int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
 	context->VSSetShader(component->vertexShader, nullptr, 0);
 	context->PSSetShader(component->pixelShader, nullptr, 0);
 	context->VSSetConstantBuffers(0, 1, &constBuff);
+}
 
-	context->VSSetConstantBuffers(0, 1, &constBuff);
+int Game::prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize,
+	DirectX::XMFLOAT4* colors,
+	int* indexes, int indexesSize
+) {
+	HRESULT res;
+
+	//intermed(positions, positionsSize, colors, indexes, indexesSize);
+	
+
+	//context->VSSetConstantBuffers(0, 1, &constBuff);
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_FRONT;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT

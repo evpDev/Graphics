@@ -25,6 +25,7 @@ PS_IN VSMain( VS_IN input )
 	output.pos = mul(input.pos, World);
 	output.pos = mul(output.pos, View);
 	output.pos = mul(output.pos, Projection);
+	//output.pos = input.pos;
 	output.col = input.col;
 	
 	return output;

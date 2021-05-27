@@ -44,6 +44,10 @@ int TriangleComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<
 	return 0;
 }
 
+int TriangleComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
+	return 0;
+}
+
 int* TriangleComponent::getIndexes() {
 	return verticles;
 }

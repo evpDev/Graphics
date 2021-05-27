@@ -9,6 +9,7 @@
 #include "TriangleComponent.h"
 #include "PyramidComponent.h"
 #include "CubeComponent.h"
+#include "PlaneComponent.h"
 #include "Keys.h"
 #include <vector>
 #include "DisplayWin32.h"
@@ -55,6 +56,7 @@ public:
 	float orthoScale;
 	float perspectScale;
 	boolean isPerspectiveView;
+	GameComponent* planeComponent;
 
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();
@@ -75,4 +77,5 @@ public:
 	HRESULT initMatrixes();
 	void setMatrixes();
 	int prepareFrame2(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
+	int intermed(DirectX::XMFLOAT4* positions, int positionsSize, DirectX::XMFLOAT4* colors, int* indeces, int indecesSize);
 };

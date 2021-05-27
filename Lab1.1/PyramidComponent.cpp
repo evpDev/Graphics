@@ -32,6 +32,10 @@ int PyramidComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<I
 	return 0;
 }
 
+int PyramidComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
+	return 0;
+}
+
 int* PyramidComponent::getIndexes() {
 	return (int*) indexes;
 }
