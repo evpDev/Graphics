@@ -153,10 +153,12 @@ Game::Game(HINSTANCE hInstance) {
 	components.push_back(new PlaneComponent());
 	//components.push_back(new CubeComponent());
 	//components.push_back(new PyramidComponent());
-	int indxes[] = { 0,1,2 };
+	/*int indxes[] = { 0,1,2 };
 	components.push_back(new TriangleComponent(indxes));
 	int indxes2[] = { 1,0,3 };
-	components.push_back(new TriangleComponent(indxes2));
+	components.push_back(new TriangleComponent(indxes2));*/
+
+	components.push_back(new CustomMeshComponent());
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
@@ -197,7 +199,7 @@ void Game::run() {
 
 void Game::draw() {
 	auto	curTime = std::chrono::steady_clock::now();
-	float	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime).count() / 1000000.0f;
+	float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime).count() / 1000000.0f;
 	prevTime = curTime;
 
 	totalTime += deltaTime;
@@ -240,7 +242,7 @@ int Game::prepareFrame() {
 	HRESULT res;
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
-	rastDesc.CullMode = D3D11_CULL_FRONT;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT
+	rastDesc.CullMode = D3D11_CULL_NONE;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT
 	rastDesc.FillMode = D3D11_FILL_SOLID;//D3D11_FILL_SOLID;D3D11_FILL_WIREFRAME
 
 	ID3D11RasterizerState* rastState;

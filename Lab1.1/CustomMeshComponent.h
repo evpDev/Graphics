@@ -1,21 +1,28 @@
 #pragma once
+
 #include "GameComponent.h"
 #include "ProjectUtils.h"
 
-class PlaneComponent : public GameComponent {
+class CustomMeshComponent : public GameComponent {
 public:
-	SimpleVertex points[40];
-	WORD indexes[40];
+	SimpleVertex points[5];
+	//DirectX::XMFLOAT3* points2;
+	SimpleVertex* points2;
+	int pointsSize;
+	WORD* indexes;
+	int indexesSize;
 
-	D3D11_BUFFER_DESC bd;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ID3D11Buffer* indexBuff;
 	ID3D11Buffer* vertexBuff;
+	D3D11_BUFFER_DESC bd;
+	ID3D11Buffer* indexBuff;
 	D3D11_BUFFER_DESC constantBufDesc;
+	D3D11_SUBRESOURCE_DATA InitData;
+
 	bool wasSet;
 
-	PlaneComponent();
+	CustomMeshComponent();
 	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device);
+	int initialize();
 
 	int* getIndexes();
 	int getIndexesSize();

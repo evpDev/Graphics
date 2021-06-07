@@ -10,6 +10,7 @@
 #include "PyramidComponent.h"
 #include "CubeComponent.h"
 #include "PlaneComponent.h"
+#include "CustomMeshComponent.h"
 #include "Keys.h"
 #include <vector>
 #include "DisplayWin32.h"
@@ -29,7 +30,7 @@ public:
 	ID3D11Debug* debug;
 	ID3DUserDefinedAnnotation* annotation;
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
-	static Game* instance;
+	//static Game* instance;
 	LPCWSTR name;
 	std::chrono::time_point<std::chrono::steady_clock> prevTime;
 	int renderSRV;
@@ -55,7 +56,7 @@ public:
 	float orthoScale;
 	float perspectScale;
 	boolean isPerspectiveView;
-	GameComponent* planeComponent;
+	//GameComponent* planeComponent;
 
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();
