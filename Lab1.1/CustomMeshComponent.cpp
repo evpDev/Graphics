@@ -4,40 +4,61 @@
 
 using namespace DirectX;
 
-CustomMeshComponent::CustomMeshComponent() : wasSet(false) {
+CustomMeshComponent::CustomMeshComponent() : wasSet(false) {}
+
+CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 
 	std::string warn;
 	std::string err;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "C:/Users/aaa/Downloads/OBJ/SARS_CoV_2_Vaccine.obj",
-		"C:/Users/aaa/Downloads/OBJ", true, true);
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "SARS_CoV_2_Vaccine.obj",
+		"", true, true);
 	if (ret) {
 		std::cout << "Model is loaded" << std::endl;
 	}
 	pointsSize = attrib.vertices.size()/3;
-	points2 = (SimpleVertex*) std::malloc(sizeof(SimpleVertex) * pointsSize);
-	for (int i = 0, j = 0; i < attrib.vertices.size(); i += 3, j++) {
+	points2 = (SimpleExtendedVertex*) std::malloc(sizeof(SimpleExtendedVertex) * pointsSize);
+	/*for (int i = 0, j = 0; i < attrib.vertices.size(); i += 3, j++) {
 		points2[j] = {
 			XMFLOAT3(attrib.vertices[i], attrib.vertices[i + 1], attrib.vertices[i + 2]),
-			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)
+			XMFLOAT2(1.0f, 0.0f),
+
 		};
 	}
 	if (ret) {
-		SimpleVertex tmp = points2[1];
-		SimpleVertex tmp2 = points2[2];
+		SimpleExtendedVertex tmp = points2[1];
+		SimpleExtendedVertex tmp2 = points2[2];
 		std::cout << "Model is loaded" << std::endl;
-	}
+	}*/
 
-	indexesSize = shapes[0].mesh.indices.size();
+	auto sarsIndeces = shapes[0].mesh.indices;
+	indexesSize = sarsIndeces.size();
 	indexes = (WORD*)std::malloc(sizeof(int) * indexesSize);
 	for (int i = 0; i < indexesSize; i++) {
-		indexes[i] = shapes[0].mesh.indices[i].vertex_index;
+		indexes[i] = sarsIndeces[i].vertex_index;
+		int v = indexes[i];
+		int tc = sarsIndeces[i].texcoord_index;
+		int n = sarsIndeces[i].normal_index;
+		points2[v] = {
+			XMFLOAT3(attrib.vertices[v * 3], attrib.vertices[v * 3 + 1], attrib.vertices[v * 3 + 2]),
+			XMFLOAT2(attrib.texcoords[tc * 2], attrib.texcoords[tc * 2 + 1]),
+			XMFLOAT3(attrib.normals[n * 3],   attrib.normals[n * 3 + 1],  attrib.normals[n * 3 + 2])
+		};
 	}
+
 	if (ret) {
 		WORD tmp = indexes[1];
 		WORD tmp2 = indexes[2];
+		SimpleExtendedVertex tmp3 = points2[1];
+		SimpleExtendedVertex tmp4 = points2[2];
+		for (int i = 0; i < 30; i++) {
+			std::cout << points2[i].Pos.x << " " << points2[i].Pos.y << " " << points2[i].Pos.z << std::endl;
+		}
+		for (int i = 0; i < 30; i++) {
+			std::cout << indexes[i] << std::endl;
+		}
 		std::cout << "Model is loaded" << std::endl;
 	}
 }
@@ -46,11 +67,23 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 
 	GameComponent::initialize(display, device);
 
-	D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
+	/*D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,	 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
 		D3D11_INPUT_ELEMENT_DESC {"COLOR",	  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
-	device->CreateInputLayout(inputElements2, 2, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);
+	device->CreateInputLayout(inputElements2, 2, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);*/
+	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
+		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
+		D3D11_INPUT_ELEMENT_DESC {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		D3D11_INPUT_ELEMENT_DESC {"NORMAL",	  0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};
+	device->CreateInputLayout(inputElements, 3, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);
+
+	/*ID3D11Texture2D* texture = (ID3D11Texture2D*)std::malloc(sizeof(ID3D11Texture2D));
+	ID3D11ShaderResourceView* texSRV = (ID3D11ShaderResourceView*)std::malloc(sizeof(ID3D11ShaderResourceView));*/
+	//const wchar_t* filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
+	LPCWSTR filename = L"SARS_CoV_2_Vaccine_Blue_Diffuse.png";
+	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);
 
 	return 0;
 }
@@ -107,10 +140,42 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 	}
 	/*-------------------------Constant Buffer------------------------------*/
 
+	//D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	if (!wasSet) {
+		res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);
+	}
+
 	context->IASetInputLayout(layout);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
 	context->VSSetConstantBuffers(0, 1, constBuff);
+	context->PSSetShaderResources(0, 1, &texSRV);
+	//context->PSSetSamplers(0, 1, &samplerLinear);
+
+	/*ID3D11ShaderResourceView* textureRV = NULL;
+	ID3D11SamplerState* samplerLinear = NULL;
+
+	res = D3DX11CreateShaderResourceViewFromFile(device, L"seafloor.dds", NULL, NULL, &textureRV, NULL); ZCHECK(res);
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);*/
 
 	wasSet = true;
 }

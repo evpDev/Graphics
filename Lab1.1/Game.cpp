@@ -141,7 +141,7 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 	}
 }
 
-Game::Game(HINSTANCE hInstance) {
+Game::Game(HINSTANCE hInstance) : textureLoader(new TextureLoader(this)) {
 	name = L"Game";
 	display = new DisplayWin32(name, hInstance, 800, 800);
 	float totalTime = 0;
@@ -158,7 +158,7 @@ Game::Game(HINSTANCE hInstance) {
 	int indxes2[] = { 1,0,3 };
 	components.push_back(new TriangleComponent(indxes2));*/
 
-	components.push_back(new CustomMeshComponent());
+	components.push_back(new CustomMeshComponent(this));
 }
 
 int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
@@ -217,7 +217,7 @@ void Game::draw() {
 		frameCount = 0;
 	}
 
-	float color[] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	float color[] = { 1.0f, 0.0f, 1.0f, 1.0f };
 
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 

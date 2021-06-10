@@ -12,6 +12,7 @@
 #include "PlaneComponent.h"
 #include "CustomMeshComponent.h"
 #include "Keys.h"
+#include "TextureLoader.h"
 #include <vector>
 #include "DisplayWin32.h"
 #pragma comment(lib, "dxgi.lib")
@@ -22,6 +23,8 @@
 #include <d3d11_1.h>
 #include <d3d11_4.h>
 //#include <directxmath.h>
+
+class TextureLoader;
 
 class Game {
 public:
@@ -56,7 +59,7 @@ public:
 	float orthoScale;
 	float perspectScale;
 	boolean isPerspectiveView;
-	//GameComponent* planeComponent;
+	TextureLoader* textureLoader;
 
 	Game(HINSTANCE hInstance);
 	void createBackBuffer();

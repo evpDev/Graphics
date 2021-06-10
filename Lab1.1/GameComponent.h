@@ -15,6 +15,13 @@ struct SimpleVertex
 	DirectX::XMFLOAT4 Color;
 };
 
+struct SimpleExtendedVertex
+{
+	DirectX::XMFLOAT3 Pos;
+	DirectX::XMFLOAT2 Tex;
+	DirectX::XMFLOAT3 Normal;
+};
+
 class GameComponent {
 	//Game game;
 public:
