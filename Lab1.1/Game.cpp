@@ -217,7 +217,7 @@ void Game::draw() {
 		frameCount = 0;
 	}
 
-	float color[] = { 1.0f, 0.0f, 1.0f, 1.0f };
+	float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 
@@ -242,7 +242,7 @@ int Game::prepareFrame() {
 	HRESULT res;
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
-	rastDesc.CullMode = D3D11_CULL_NONE;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT
+	rastDesc.CullMode = D3D11_CULL_FRONT;// D3D11_CULL_NONE;D3D11_CULL_BACK;D3D11_CULL_FRONT
 	rastDesc.FillMode = D3D11_FILL_SOLID;//D3D11_FILL_SOLID;D3D11_FILL_WIREFRAME
 
 	ID3D11RasterizerState* rastState;

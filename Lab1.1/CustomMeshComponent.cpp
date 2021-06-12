@@ -13,8 +13,12 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 
 	std::string warn;
 	std::string err;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "SARS_CoV_2_Vaccine.obj",
-		"", true, true);
+	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Dumbbell-Weights-Set-obj\\Dumbbell_Weights_Set.obj";
+	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Sport-Water-Bottle-Red-obj\\Sport_Water_Bottle_Red_convert.obj";
+	const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\apple.obj";
+	//"C:/Users/aaa/Downloads/OBJ/PalletPlywoodNew_GameReady.obj",//"SARS_CoV_2_Vaccine.obj",
+	const char* objPath = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple";
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, pathWithObj, objPath, true, true);
 	if (ret) {
 		std::cout << "Model is loaded" << std::endl;
 	}
@@ -36,8 +40,15 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 	auto sarsIndeces = shapes[0].mesh.indices;
 	indexesSize = sarsIndeces.size();
 	indexes = (WORD*)std::malloc(sizeof(int) * indexesSize);
+	WORD tmpIndex;
 	for (int i = 0; i < indexesSize; i++) {
 		indexes[i] = sarsIndeces[i].vertex_index;
+		if (i % 3 == 1) {
+			tmpIndex = sarsIndeces[i].vertex_index;
+		} else if (i % 3 == 2) {
+			indexes[i] = tmpIndex;
+			indexes[i-1] = sarsIndeces[i].vertex_index;
+		}
 		int v = indexes[i];
 		int tc = sarsIndeces[i].texcoord_index;
 		int n = sarsIndeces[i].normal_index;
@@ -82,7 +93,10 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 	/*ID3D11Texture2D* texture = (ID3D11Texture2D*)std::malloc(sizeof(ID3D11Texture2D));
 	ID3D11ShaderResourceView* texSRV = (ID3D11ShaderResourceView*)std::malloc(sizeof(ID3D11ShaderResourceView));*/
 	//const wchar_t* filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
-	LPCWSTR filename = L"SARS_CoV_2_Vaccine_Blue_Diffuse.png";
+	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\OBJ\\Textures\\PalletPlywood_Diffuse.png";
+	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\OBJ\\Textures\\SARS_CoV_2_Vaccine_Blue_Diffuse.png";
+	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Sport-Water-Bottle-Red-obj\\sport_water_bottle_Diffuse.png";
+	LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\Maps\\skin.tif";
 	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);
 
 	return 0;
@@ -94,7 +108,7 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 	/*D3D11_BUFFER_DESC bd;*/
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * getPointsSize();
+	bd.ByteWidth = sizeof(SimpleExtendedVertex) * getPointsSize();
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
@@ -118,7 +132,7 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 		res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
 	}
 
-	UINT stride = sizeof(SimpleVertex);
+	UINT stride = sizeof(SimpleExtendedVertex);
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
@@ -159,7 +173,7 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 	context->PSSetShader(pixelShader, nullptr, 0);
 	context->VSSetConstantBuffers(0, 1, constBuff);
 	context->PSSetShaderResources(0, 1, &texSRV);
-	//context->PSSetSamplers(0, 1, &samplerLinear);
+	context->PSSetSamplers(0, 1, &samplerLinear);
 
 	/*ID3D11ShaderResourceView* textureRV = NULL;
 	ID3D11SamplerState* samplerLinear = NULL;
