@@ -4,24 +4,16 @@
 #pragma warning(disable : 4267)
 
 #define WIN32_LEAN_AND_MEAN
-//#include "windows.h"
 #include <iostream>
 #include "winuser.h"
 #include <wrl.h>
 
 #pragma comment(lib, "d3d11.lib")
-//#pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
 
-//#include <d3d.h>
-//#include <d3d11.h>
-//#include <d3d11_1.h>
-//#include <d3d11_4.h>
 #include <d3dcompiler.h>
-//#include <directxmath.h>
 #include <DirectXColors.h>
-//#include <chrono>
 #include <thread>
 
 #define ZCHECK(exp) if(FAILED(exp)) { printf("Check failed at file: %s at line %i", __FILE__, __LINE__); return 0; }
@@ -32,112 +24,46 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 	//auto id = std::this_thread::get_id();
 	//std::cout << "WndProc id: " << id << "\n";
 
-	switch (umessage)
-	{
+	switch (umessage) {
 		// Check if the window is being destroyed.
-	case WM_DESTROY:
-	case WM_CLOSE:
-	{
-		PostQuitMessage(0);
-		return 0;
-	}
-
-	case WM_SIZE:
-	{
-		std::cout << "Width " << LOWORD(lparam) << " Height " << HIWORD(lparam) << std::endl;
-
-		return 0;
-	}
-
-	// Check if a key has been pressed on the keyboard.
-	case WM_KEYDOWN:
-	{
-		// If a key is pressed send it to the input object so it can record that state.
-		std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
-
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::R)) {
-			if (isPerspectiveView) {
-				isPerspectiveView = false;
-				projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
-			} else {
-				isPerspectiveView = true;
-				projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
-			}
+		case WM_DESTROY:
+		case WM_CLOSE: {
+			PostQuitMessage(0);
+			return 0;
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::A)) {
-			world = world * XMMatrixRotationY(0.04);
+		case WM_SIZE: {
+			std::cout << "Width " << LOWORD(lparam) << " Height " << HIWORD(lparam) << std::endl;
+
+			return 0;
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::D)) {
-			world = world * XMMatrixRotationY(-0.04);
+		// Check if a key has been pressed on the keyboard.
+		case WM_KEYDOWN: {
+			// If a key is pressed send it to the input object so it can record that state.
+			std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
+			inputDevice->onKeyDown(static_cast<unsigned int>(wparam));
+			if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Escape)) PostQuitMessage(0);
+
+			return 0;
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Q)) {
-			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationZ(0.04) * XMMatrixTranslation(0, 1, 0);
-			
+		// Check if a key has been released on the keyboard.
+		case WM_KEYUP: {
+			// If a key is released then send it to the input object so it can unset the state for that key.
+			return 0;
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::E)) {
-			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationZ(-0.04) * XMMatrixTranslation(0, 1, 0);
+		case WM_MOUSEWHEEL: {
+			inputDevice->onMouseWheel(static_cast<unsigned int>(wparam));
+			std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
+			return 0;
 		}
 
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::W)) {
-			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationX(0.04) * XMMatrixTranslation(0, 1, 0);
+		// All other messages pass to the message handler in the system class.
+		default: {
+			return DefWindowProc(hwnd, umessage, wparam, lparam);
 		}
-
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::S)) {
-			world = world * XMMatrixTranslation(0, -1, 0) * XMMatrixRotationX(-0.04) * XMMatrixTranslation(0, 1, 0);
-		}
-
-		if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Escape)) PostQuitMessage(0);
-		return 0;
-	}
-
-	// Check if a key has been released on the keyboard.
-	case WM_KEYUP:
-	{
-		// If a key is released then send it to the input object so it can unset the state for that key.
-		return 0;
-	}
-
-	case WM_MOUSEWHEEL: {
-		if (static_cast<unsigned int>(wparam) == 4287102976) {
-			if (isPerspectiveView) {
-				perspectScale += 0.5;
-				XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, perspectScale, 0.0f);
-				XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				view = XMMatrixLookAtLH(Eye, At, Up);
-				projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
-			} else {
-				orthoScale += 0.2;
-				projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
-			}
-		}
-
-		if (static_cast<unsigned int>(wparam) == 7864320) {
-			if (isPerspectiveView) {
-				perspectScale -= 0.5;
-				XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, perspectScale, 0.0f);
-				XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				view = XMMatrixLookAtLH(Eye, At, Up);
-				projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, display->screenWidth / (FLOAT)display->screenHeight, 0.01f, 100.0f);
-			} else {
-				orthoScale -= 0.2;
-				projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
-			}
-		}
-		std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
-		return 0;
-	}
-
-	// All other messages pass to the message handler in the system class.
-	default:
-	{
-		return DefWindowProc(hwnd, umessage, wparam, lparam);
-	}
 	}
 }
 
@@ -149,6 +75,7 @@ Game::Game(HINSTANCE hInstance) : textureLoader(new TextureLoader(this)) {
 	orthoScale = 5;
 	perspectScale = -5;
 	isPerspectiveView = false;
+	inputDevice = new InputDevice(this);
 
 	components.push_back(new PlaneComponent());
 	//components.push_back(new CubeComponent());

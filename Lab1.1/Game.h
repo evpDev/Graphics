@@ -1,11 +1,9 @@
 #pragma once
 
 #include "windows.h"
-//#include "winuser.h"
-//#include <wrl.h>
 
 #include "DisplayWin32.h"
-//#include "InputDevice.h"
+#include "InputDevice.h"
 #include "TriangleComponent.h"
 #include "PyramidComponent.h"
 #include "CubeComponent.h"
@@ -19,12 +17,11 @@
 #include <chrono>
 
 #include <d3d.h>
-//#include <d3d11.h>
 #include <d3d11_1.h>
 #include <d3d11_4.h>
-//#include <directxmath.h>
 
 class TextureLoader;
+class InputDevice;
 
 class Game {
 public:
@@ -33,11 +30,9 @@ public:
 	ID3D11Debug* debug;
 	ID3DUserDefinedAnnotation* annotation;
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
-	//static Game* instance;
 	LPCWSTR name;
 	std::chrono::time_point<std::chrono::steady_clock> prevTime;
 	int renderSRV;
-	//int renderView;
 	ID3D11RenderTargetView* rtv;
 	int screenResized;
 	int startTime;
@@ -48,14 +43,12 @@ public:
 	DisplayWin32* display;
 	std::vector<GameComponent*> components;
 	GameComponent* component;
-	//DirectX::XMFLOAT4 positions[4];
-	//DirectX::XMFLOAT4 colors[4];
-	//int indexes[6];
+	
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX view;
 	DirectX::XMMATRIX projection;
 	ID3D11Buffer* constBuff;
-	//InputDevice* inputDevice;
+	InputDevice* inputDevice;
 	float orthoScale;
 	float perspectScale;
 	boolean isPerspectiveView;

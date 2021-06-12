@@ -5,8 +5,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 
 class DisplayWin32 {
 public://have to be private
-	//UINT clientHeight;
-	//UINT clientWidth;
 	HINSTANCE hInstance;
 	HWND hWnd;
 	int module;

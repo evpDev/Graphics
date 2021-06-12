@@ -1,8 +1,10 @@
 #pragma once
-//#include "Game.h"
+#include "Game.h"
+
+class Game;
 
 class InputDevice {
-	//Game* game;
+	Game* game;
 	int keys;
 	int mouseMove;
 	int mouseOffset;
@@ -10,10 +12,11 @@ class InputDevice {
 	int mouseWheelDelta;
 public:
 	InputDevice();
-	//InputDevice(Game* g);
+	InputDevice(Game* g);
 	void addPressedKey();
 	void isKeyDown();
 	void onKeyDown(int key);
+	void onMouseWheel(int key);
 	void onMouseMove();
 	void removePressedKeys();
 };
