@@ -2,13 +2,13 @@
 
 GameComponent::GameComponent() {}
 
-int GameComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device) {
+int GameComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 	HRESULT res;
 	ID3DBlob* errorVertexCode;
 	res = D3DCompileFromFile(L"MiniTri.fx",
 		nullptr /*macros*/,
 		nullptr /*include*/,
-		"VSMain",
+		vertexShaderName,
 		"vs_5_0",
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 		0,
@@ -38,7 +38,7 @@ int GameComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D
 	res = D3DCompileFromFile(L"MiniTri.fx",
 		nullptr /*macros*/,
 		nullptr /*include*/,
-		"PSMain",
+		pixelShaderName,
 		"ps_5_0",
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 		0,

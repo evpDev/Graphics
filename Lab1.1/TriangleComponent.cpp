@@ -31,9 +31,9 @@ TriangleComponent::TriangleComponent(DirectX::XMFLOAT4* positions,
 	std::copy(indexes, indexes + VERTICLES_NUM, this->verticles);
  }
 
-int TriangleComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device) {
+int TriangleComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 	
-	GameComponent::initialize(display, device);
+	GameComponent::initialize(display, device, vertexShaderName, pixelShaderName);
 	
 	D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},

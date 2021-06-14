@@ -12,7 +12,7 @@ public:
 	WORD indexes[18];
 
 	PyramidComponent();
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device);
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "VSMain", LPCSTR pixelShaderName = "PSMain");
 	int initialize();
 
 	int* getIndexes();

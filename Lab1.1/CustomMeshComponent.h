@@ -34,7 +34,7 @@ public:
 
 	CustomMeshComponent();
 	CustomMeshComponent(Game* g);
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device);
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName);
 	int initialize();
 
 	int* getIndexes();

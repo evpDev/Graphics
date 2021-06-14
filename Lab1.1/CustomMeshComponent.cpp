@@ -13,11 +13,13 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 
 	std::string warn;
 	std::string err;
+	const char* pathWithObj = "SARS_CoV_2_Vaccine.obj";
 	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Dumbbell-Weights-Set-obj\\Dumbbell_Weights_Set.obj";
 	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Sport-Water-Bottle-Red-obj\\Sport_Water_Bottle_Red_convert.obj";
-	const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\apple.obj";
+	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\apple.obj";
 	//"C:/Users/aaa/Downloads/OBJ/PalletPlywoodNew_GameReady.obj",//"SARS_CoV_2_Vaccine.obj",
-	const char* objPath = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple";
+	const char* objPath = "";
+	//const char* objPath = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple";
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, pathWithObj, objPath, true, true);
 	if (ret) {
 		std::cout << "Model is loaded" << std::endl;
@@ -64,19 +66,19 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 		WORD tmp2 = indexes[2];
 		SimpleExtendedVertex tmp3 = points2[1];
 		SimpleExtendedVertex tmp4 = points2[2];
-		for (int i = 0; i < 30; i++) {
+		/*for (int i = 0; i < 30; i++) {
 			std::cout << points2[i].Pos.x << " " << points2[i].Pos.y << " " << points2[i].Pos.z << std::endl;
 		}
 		for (int i = 0; i < 30; i++) {
 			std::cout << indexes[i] << std::endl;
-		}
+		}*/
 		std::cout << "Model is loaded" << std::endl;
 	}
 }
 
-int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device) {
+int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 
-	GameComponent::initialize(display, device);
+	GameComponent::initialize(display, device, "VSMain", "PSMain");
 
 	/*D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,	 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -92,11 +94,11 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 
 	/*ID3D11Texture2D* texture = (ID3D11Texture2D*)std::malloc(sizeof(ID3D11Texture2D));
 	ID3D11ShaderResourceView* texSRV = (ID3D11ShaderResourceView*)std::malloc(sizeof(ID3D11ShaderResourceView));*/
-	//const wchar_t* filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
+	LPCWSTR filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
 	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\OBJ\\Textures\\PalletPlywood_Diffuse.png";
 	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\OBJ\\Textures\\SARS_CoV_2_Vaccine_Blue_Diffuse.png";
 	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Sport-Water-Bottle-Red-obj\\sport_water_bottle_Diffuse.png";
-	LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\Maps\\skin.tif";
+	//LPCWSTR filename = L"C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\Maps\\skin.tif";
 	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);
 
 	return 0;

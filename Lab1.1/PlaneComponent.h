@@ -5,7 +5,7 @@
 class PlaneComponent : public GameComponent {
 public:
 	SimpleVertex points[40];
-	WORD indexes[40];
+	WORD indexes[44];
 
 	D3D11_BUFFER_DESC bd;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -15,7 +15,7 @@ public:
 	bool wasSet;
 
 	PlaneComponent();
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device);
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "VSMain", LPCSTR pixelShaderName = "PSMain");
 
 	int* getIndexes();
 	int getIndexesSize();

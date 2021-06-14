@@ -22,7 +22,7 @@ public:
 	TriangleComponent(DirectX::XMFLOAT4* positions, DirectX::XMFLOAT4* colors, int posColSize, int* indexes);
 	void destroyResources();
 	void draw();
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device);
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "VSMain", LPCSTR pixelShaderName = "PSMain");
 	void reload();
 	void update();
 
