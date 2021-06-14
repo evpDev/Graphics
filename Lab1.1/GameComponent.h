@@ -11,12 +11,6 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
-struct SimpleVertex
-{
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT4 Color;
-};
-
 struct Transform {
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 rotation;

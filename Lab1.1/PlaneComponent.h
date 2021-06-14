@@ -4,8 +4,10 @@
 
 class PlaneComponent : public GameComponent {
 public:
-	SimpleVertex points[40];
-	WORD indexes[44];
+	//SimpleVertex points[40];
+	SimpleVertex* points;
+	//WORD indexes[44];
+	WORD* indexes;
 
 	D3D11_BUFFER_DESC bd;
 	D3D11_SUBRESOURCE_DATA InitData;

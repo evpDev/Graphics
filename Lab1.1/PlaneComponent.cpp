@@ -2,57 +2,47 @@
 
 using namespace DirectX;
 
-PlaneComponent::PlaneComponent() :
-	points{
-		{ XMFLOAT3(-5.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-4.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-3.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-2.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 0.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 1.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 2.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 3.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 4.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f, -5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+PlaneComponent::PlaneComponent() : wasSet(false) {
+	int planeLinesX = 11;
+	int pointsSize = (planeLinesX - 1) * 4;
+	points = (SimpleVertex*) malloc(sizeof(SimpleVertex) * pointsSize);
+	for (int i = -5, j = 0; i <= 5; i++, j++) {
+		points[j] = {
+			XMFLOAT3(i,  0.0f, -5.0f),
+			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		};
+		points[j + planeLinesX] = {
+			XMFLOAT3(i,  0.0f, 5.0f),
+			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		};
+	}
+	for (int i = -4, j = 2 * planeLinesX; i <= 4; i++, j++) {
+		points[j] = {
+			XMFLOAT3(-5.0f,  0.0f, i),
+			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		};
+		points[j + planeLinesX - 2] = {
+			XMFLOAT3(5.0f,  0.0f, i),
+			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		};
+	}
 
-		{ XMFLOAT3(-5.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-4.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-3.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-2.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 0.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 1.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 2.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 3.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 4.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f,  5.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+	int indexesSize = planeLinesX * 4;
+	indexes = (WORD*) malloc(sizeof(WORD) * indexesSize);
+	for (int i = 0; i < planeLinesX; i++) {
+		indexes[i * 2] = i;
+		indexes[i * 2 + 1] = i + planeLinesX;
+	}
+	for (int i = planeLinesX; i < (planeLinesX - 1) * 2; i++) {
+		indexes[i * 2] = planeLinesX + i;
+		indexes[i * 2 + 1] = indexes[i * 2] + planeLinesX - 2;
+	}
+	indexes[(planeLinesX - 1) * 4] = 0;
+	indexes[(planeLinesX - 1) * 4 + 1] = planeLinesX - 1;
+	indexes[(planeLinesX - 1) * 4 + 2] = planeLinesX;
+	indexes[(planeLinesX - 1) * 4 + 3] = planeLinesX * 2 - 1;
 
-		{ XMFLOAT3(-5.0f,  0.0f, -4.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f, -3.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f, -2.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f,  0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f,  1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f,  2.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f,  3.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-5.0f,  0.0f,  4.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-
-		{ XMFLOAT3( 5.0f,  0.0f, -4.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f, -3.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f, -2.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f,  0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f,  1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f,  2.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f,  3.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3( 5.0f,  0.0f,  4.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-},
-	indexes{
-		0,11, 1,12, 2,13, 3,14, 4,15, 5,16, 6,17, 7,18, 8,19, 9,20, 10,21,
-		0,10, 22,31, 23,32, 24,33, 25,34, 26,35, 27,36, 28,37, 29,38, 30,39, 11,21,
-	}, 
-	wasSet(false) {
+	mesh = new MeshFilter(points, pointsSize, indexes, indexesSize);
 }
 
 int PlaneComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
@@ -71,17 +61,15 @@ int PlaneComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3
 int PlaneComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
 	HRESULT res;
 
-	/*D3D11_BUFFER_DESC bd;*/
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(SimpleVertex) * getPointsSize();
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
-	/*D3D11_SUBRESOURCE_DATA InitData;*/
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = getPoints();
 
-	/*ID3D11Buffer* vertexBuff;*/
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = points;
+
 	if (!wasSet) {
 		res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
 	}
@@ -92,7 +80,6 @@ int PlaneComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID
 	bd.CPUAccessFlags = 0;
 	InitData.pSysMem = getIndexes();
 
-	/*ID3D11Buffer* indexBuff;*/
 	if (!wasSet) {
 		res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
 	}
@@ -104,8 +91,7 @@ int PlaneComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	/*-------------------------Constant Buffer------------------------------*/
-	//D3D11_BUFFER_DESC 
-		constantBufDesc = {};
+	constantBufDesc = {};
 	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
 	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufDesc.CPUAccessFlags = 0;
@@ -113,7 +99,6 @@ int PlaneComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID
 	constantBufDesc.StructureByteStride = 0;
 	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
 
-	//ID3D11Buffer* constBuff;
 	if (!wasSet) {
 		res = device->CreateBuffer(&constantBufDesc, NULL, constBuff); ZCHECK(res);
 	}
@@ -128,17 +113,17 @@ int PlaneComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID
 }
 
 int* PlaneComponent::getIndexes() {
-	return (int*)indexes;
+	return mesh->getIndexes();
 }
 
 int PlaneComponent::getIndexesSize() {
-	return std::size(indexes);
+	return mesh->getIndexesSize();
 }
 
 int* PlaneComponent::getPoints() {
-	return (int*)points;
+	return mesh->getPoints();
 }
 
 int PlaneComponent::getPointsSize() {
-	return std::size(points);
+	return mesh->getPointsSize();
 }
