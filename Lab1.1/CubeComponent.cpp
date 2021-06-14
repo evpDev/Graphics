@@ -98,3 +98,8 @@ int* CubeComponent::getPoints() {
 int CubeComponent::getPointsSize() {
 	return std::size(points);
 }
+
+void CubeComponent::release() {
+	vertexShader->Release();
+	pixelShader->Release();
+}

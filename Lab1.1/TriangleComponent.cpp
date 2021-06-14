@@ -106,3 +106,8 @@ int* TriangleComponent::getIndexes() {
 int TriangleComponent::getIndexesSize() {
 	return std::size(verticles);
 }
+
+void TriangleComponent::release() {
+	vertexShader->Release();
+	pixelShader->Release();
+}

@@ -20,13 +20,13 @@ public:
 	WORD* indexes;
 	int indexesSize;*/
 
-	ID3D11Buffer* vertexBuff;
+	//ID3D11Buffer* vertexBuff;
 	/*D3D11_BUFFER_DESC bd3;
 	D3D11_BUFFER_DESC bd2;*/
-	D3D11_BUFFER_DESC bd;
-	ID3D11Buffer* indexBuff;
-	D3D11_BUFFER_DESC constantBufDesc;
-	D3D11_SUBRESOURCE_DATA InitData;
+	/*D3D11_BUFFER_DESC bd;*/
+	//ID3D11Buffer* indexBuff;
+	//D3D11_BUFFER_DESC constantBufDesc;
+	/*D3D11_SUBRESOURCE_DATA InitData;*/
 	D3D11_SAMPLER_DESC sampDesc;
 	Game* g;
 
@@ -54,6 +54,7 @@ public:
 	int getIndexesSize();
 	int* getPoints();
 	int getPointsSize();
+	void release();
 
 	int draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff);
 };

@@ -24,13 +24,15 @@ class GameComponent {
 public:
 	Transform transform;
 	MeshFilter* mesh;
-	MeshRenderer meshRenderer;
+	MeshRenderer* meshRenderer;
+	//
 	ID3D11InputLayout* layout;
 	ID3D11PixelShader* pixelShader;
 	ID3DBlob* pixelShaderByteCode;
 	ID3D11VertexShader* vertexShader;
 	ID3DBlob* vertexShaderByteCode;
 	ID3DBlob* errorVertexCode;
+	//
 
 	GameComponent();
 	void destroyResources();
@@ -44,5 +46,5 @@ public:
 	virtual int getIndexesSize() = 0;
 	virtual int* getPoints();
 	virtual int getPointsSize();
-
+	virtual void release();
 };

@@ -97,3 +97,8 @@ int* PyramidComponent::getPoints() {
 int PyramidComponent::getPointsSize() {
 	return std::size(points);
 }
+
+void PyramidComponent::release() {
+	vertexShader->Release();
+	pixelShader->Release();
+}

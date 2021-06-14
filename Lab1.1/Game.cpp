@@ -244,8 +244,7 @@ int Game::prepareResources() {
 
 void Game::destroyResources() {
 	for (GameComponent* gc : components) {
-		gc->vertexShader->Release();
-		gc->pixelShader->Release();
+		gc->release();
 	}
 
 	device->Release();

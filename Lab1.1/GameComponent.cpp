@@ -85,3 +85,8 @@ int* GameComponent::getPoints() {
 int GameComponent::getPointsSize() {
 	return 0;
 }
+
+void GameComponent::release() {
+	vertexShader->Release();
+	pixelShader->Release();
+}

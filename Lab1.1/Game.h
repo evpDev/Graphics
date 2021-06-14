@@ -12,7 +12,6 @@
 #include "Keys.h"
 #include "TextureLoader.h"
 #include <vector>
-#include "DisplayWin32.h"
 #pragma comment(lib, "dxgi.lib")
 #include <chrono>
 

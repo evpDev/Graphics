@@ -25,4 +25,5 @@ public:
 	int getPointsSize();
 
 	int draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff);
+	void release();
 };

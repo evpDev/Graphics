@@ -30,11 +30,11 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
 	HRESULT res;
 
-	ZeroMemory(&bd, sizeof(bd));
+	/*ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(SimpleExtendedVertex) * getPointsSize();
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
+	bd.CPUAccessFlags = 0;*/
 
 	points = (SimpleExtendedVertex*) malloc(sizeof(SimpleExtendedVertex) * getPointsSize());
 	for (int i = 0; i < getPointsSize(); i++) {
@@ -45,20 +45,20 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 		};
 	}
 
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = points;
+	/*ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = points;*/
 
-	if (!wasSet) {
+	/*if (!wasSet) {
 		res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
-	}
+	}*/
 
-	bd.Usage = D3D11_USAGE_DEFAULT;
+	/*bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(WORD) * getIndexesSize();
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
-	InitData.pSysMem = getIndexes();
+	InitData.pSysMem = getIndexes();*/
 
-	if (!wasSet) {
+	/*if (!wasSet) {
 		res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
 	}
 
@@ -66,10 +66,10 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;D3D11_PRIMITIVE_TOPOLOGY_LINELIST
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);*///D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;D3D11_PRIMITIVE_TOPOLOGY_LINELIST
 
 	/*-------------------------Constant Buffer------------------------------*/
-	constantBufDesc = {};
+	/*constantBufDesc = {};
 	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
 	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufDesc.CPUAccessFlags = 0;
@@ -79,7 +79,7 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 
 	if (!wasSet) {
 		res = device->CreateBuffer(&constantBufDesc, NULL, constBuff); ZCHECK(res);
-	}
+	}*/
 	/*-------------------------Constant Buffer------------------------------*/
 
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -95,10 +95,10 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 		res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);
 	}
 
-	context->IASetInputLayout(layout);
+	/*context->IASetInputLayout(layout);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
-	context->VSSetConstantBuffers(0, 1, constBuff);
+	context->VSSetConstantBuffers(0, 1, constBuff);*/
 	context->PSSetShaderResources(0, 1, &texSRV);
 	context->PSSetSamplers(0, 1, &samplerLinear);
 
@@ -119,4 +119,9 @@ int* CustomMeshComponent::getPoints() {
 
 int CustomMeshComponent::getPointsSize() {
 	return mesh->getPointsSize();
+}
+
+void CustomMeshComponent::release() {
+	vertexShader->Release();
+	pixelShader->Release();
 }
