@@ -1,5 +1,3 @@
-#define TINYOBJLOADER_IMPLEMENTATION
-//#include "tiny_obj_loader.h"
 #include "CustomMeshComponent.h"
 
 using namespace DirectX;
@@ -7,46 +5,9 @@ using namespace DirectX;
 CustomMeshComponent::CustomMeshComponent() : wasSet(false) {}
 
 CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
-	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-
-	std::string warn;
-	std::string err;
 	const char* pathWithObj = "SARS_CoV_2_Vaccine.obj";
 	const char* objPath = "";
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, pathWithObj, objPath, true, true);
-	if (ret) std::cout << "Model is loaded" << std::endl;
-
-	pointsSize = attrib.vertices.size()/3;
-	points2 = (SimpleExtendedVertex*) std::malloc(sizeof(SimpleExtendedVertex) * pointsSize);
-
-	initPoints(&attrib, &shapes);
-}
-
-void CustomMeshComponent::initPoints(tinyobj::attrib_t* attrib, std::vector<tinyobj::shape_t>* shapes) {
-	auto sarsIndeces = (*shapes)[0].mesh.indices;
-	indexesSize = sarsIndeces.size();
-	indexes = (WORD*)std::malloc(sizeof(int) * indexesSize);
-	WORD tmpIndex;
-	for (int i = 0; i < indexesSize; i++) {
-		indexes[i] = sarsIndeces[i].vertex_index;
-		if (i % 3 == 1) {
-			tmpIndex = sarsIndeces[i].vertex_index;
-		}
-		else if (i % 3 == 2) {
-			indexes[i] = tmpIndex;
-			indexes[i - 1] = sarsIndeces[i].vertex_index;
-		}
-		int v = indexes[i];
-		int tc = sarsIndeces[i].texcoord_index;
-		int n = sarsIndeces[i].normal_index;
-		points2[v] = {
-			XMFLOAT3(attrib->vertices[v * 3], attrib->vertices[v * 3 + 1], attrib->vertices[v * 3 + 2]),
-			XMFLOAT2(attrib->texcoords[tc * 2], attrib->texcoords[tc * 2 + 1]),
-			XMFLOAT3(attrib->normals[n * 3],   attrib->normals[n * 3 + 1],  attrib->normals[n * 3 + 2])
-		};
-	}
+	mesh = new MeshFilter(pathWithObj, objPath);
 }
 
 int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
@@ -87,15 +48,54 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
+	/*ZeroMemory(&bd3, sizeof(bd3));
+	bd3.Usage = D3D11_USAGE_DEFAULT;
+	bd3.ByteWidth = sizeof(DirectX::XMFLOAT3) * getPointsSize();
+	bd3.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd3.CPUAccessFlags = 0;
+
+	ZeroMemory(&bd2, sizeof(bd2));
+	bd2.Usage = D3D11_USAGE_DEFAULT;
+	bd2.ByteWidth = sizeof(DirectX::XMFLOAT2) * getPointsSize();
+	bd2.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd2.CPUAccessFlags = 0;*/
+
+	points = (SimpleExtendedVertex*) malloc(sizeof(SimpleExtendedVertex) * getPointsSize());
+	for (int i = 0; i < getPointsSize(); i++) {
+		points[i] = {
+			DirectX::XMFLOAT3(mesh->vertexes[i].x, mesh->vertexes[i].y, mesh->vertexes[i].z),
+			DirectX::XMFLOAT2(mesh->textures[i].x, mesh->textures[i].y),
+			DirectX::XMFLOAT3(mesh->normales[i].x, mesh->normales[i].y, mesh->normales[i].z)
+		};
+	}
+
 	//D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = getPoints();
+	InitData.pSysMem = points;
+
+	/*vertexesData = {};
+	vertexesData.pSysMem = mesh->vertexes;
+	vertexesData.SysMemPitch = 0;
+	vertexesData.SysMemSlicePitch = 0;
+	texturesData = {};
+	texturesData.pSysMem = mesh->textures;
+	texturesData.SysMemPitch = 0;
+	texturesData.SysMemSlicePitch = 0;
+
+	normalesData = {};
+	normalesData.pSysMem = mesh->normales;
+	normalesData.SysMemPitch = 0;
+	normalesData.SysMemSlicePitch = 0;*/
 
 	//ID3D11Buffer* vertexBuff;
 	if (!wasSet) {
+		/*res = device->CreateBuffer(&bd3, &vertexesData, &vb); ZCHECK(res);
+		res = device->CreateBuffer(&bd2, &texturesData, &tb); ZCHECK(res);
+		res = device->CreateBuffer(&bd3, &normalesData, &nb); ZCHECK(res);*/
 		res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
 	}
 
+	//ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(WORD) * getIndexesSize();
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -109,7 +109,11 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 
 	UINT stride = sizeof(SimpleExtendedVertex);
 	UINT offset = 0;
+	/*ID3D11Buffer* vBuffers[] = { vb, tb, nb };
+	UINT strides[] = { 12, 8, 12 };
+	UINT offsets[] = { 0, 0, 0 };*/
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
+	//context->IASetVertexBuffers(0, 3, vBuffers, strides, offsets);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;D3D11_PRIMITIVE_TOPOLOGY_LINELIST
 
@@ -170,19 +174,17 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 }
 
 int* CustomMeshComponent::getIndexes() {
-	return (int*)indexes;
+	return mesh->getIndexes();
 }
 
 int CustomMeshComponent::getIndexesSize() {
-	//return std::size(indexes);
-	return indexesSize;
+	return mesh->getIndexesSize();
 }
 
 int* CustomMeshComponent::getPoints() {
-	return (int*)points2;
+	return mesh->getPoints();
 }
 
 int CustomMeshComponent::getPointsSize() {
-	//return std::size(points);
-	return pointsSize;
+	return mesh->getPointsSize();
 }

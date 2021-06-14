@@ -15,12 +15,14 @@ class CustomMeshComponent : public GameComponent {
 public:
 	//SimpleVertex points[5];
 	//DirectX::XMFLOAT3* points2;
-	SimpleExtendedVertex* points2;
-	int pointsSize;
+	SimpleExtendedVertex* points;
+	/*int pointsSize;
 	WORD* indexes;
-	int indexesSize;
+	int indexesSize;*/
 
 	ID3D11Buffer* vertexBuff;
+	/*D3D11_BUFFER_DESC bd3;
+	D3D11_BUFFER_DESC bd2;*/
 	D3D11_BUFFER_DESC bd;
 	ID3D11Buffer* indexBuff;
 	D3D11_BUFFER_DESC constantBufDesc;
@@ -32,12 +34,20 @@ public:
 	ID3D11SamplerState* samplerLinear;
 	ID3D11ShaderResourceView* texSRV;
 
+	/*ID3D11Buffer* vb;
+	ID3D11Buffer* tb;
+	ID3D11Buffer* nb;
+	ID3D11Buffer* cb;
+	D3D11_SUBRESOURCE_DATA vertexesData;
+	D3D11_SUBRESOURCE_DATA texturesData;
+	D3D11_SUBRESOURCE_DATA normalesData;
+	D3D11_SUBRESOURCE_DATA colorsData;*/
+
 	bool wasSet;
 
 	CustomMeshComponent();
 	CustomMeshComponent(Game* g);
 	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName);
-	void initPoints(tinyobj::attrib_t* attrib, std::vector<tinyobj::shape_t>* shapes);
 	int initialize();
 
 	int* getIndexes();

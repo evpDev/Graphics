@@ -50,9 +50,10 @@ PlaneComponent::PlaneComponent() :
 },
 	indexes{
 		0,11, 1,12, 2,13, 3,14, 4,15, 5,16, 6,17, 7,18, 8,19, 9,20, 10,21,
-		0, 10, 22,31, 23,32, 24,33, 25,34, 26,35, 27,36, 28,37, 29,38, 30,39, 11,21,
+		0,10, 22,31, 23,32, 24,33, 25,34, 26,35, 27,36, 28,37, 29,38, 30,39, 11,21,
 	}, 
-	wasSet(false) {}
+	wasSet(false) {
+}
 
 int PlaneComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 

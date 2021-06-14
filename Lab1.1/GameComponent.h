@@ -4,6 +4,8 @@
 #include <wrl.h>
 #include "DisplayWin32.h"
 #include "windows.h"
+#include "MeshFilter.h"
+#include "MeshRenderer.h"
 
 #include <iostream>
 #include <d3d11.h>
@@ -15,13 +17,6 @@ struct SimpleVertex
 	DirectX::XMFLOAT4 Color;
 };
 
-struct SimpleExtendedVertex
-{
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT2 Tex;
-	DirectX::XMFLOAT3 Normal;
-};
-
 struct Transform {
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 rotation;
@@ -30,23 +25,12 @@ struct Transform {
 	Transform();
 };
 
-struct MeshFilter {
-	DirectX::XMFLOAT3* vertexes;
-	int vertexesSize;
-	WORD* indexes;
-	int indexesSize;
-
-	int* getIndexes();
-	int getIndexesSize();
-	int* getVertexes();
-	int getVertexesSize();
-};
-
 class GameComponent {
 	//Game game;
 public:
 	Transform transform;
-	MeshFilter mesh;
+	MeshFilter* mesh;
+	MeshRenderer meshRenderer;
 	ID3D11InputLayout* layout;
 	ID3D11PixelShader* pixelShader;
 	ID3DBlob* pixelShaderByteCode;

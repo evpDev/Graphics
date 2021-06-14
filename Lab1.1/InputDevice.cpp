@@ -42,7 +42,7 @@ void InputDevice::onKeyDown(int key) {
 }
 
 void InputDevice::onMouseWheel(int key) {
-	if (key == 4287102976) {
+	if (key == 4287102976 || key == -7864320) {
 		if (game->isPerspectiveView) {
 			game->perspectScale += 0.5;
 			XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, game->perspectScale, 0.0f);
