@@ -1,5 +1,5 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
+//#include "tiny_obj_loader.h"
 #include "CustomMeshComponent.h"
 
 using namespace DirectX;
@@ -14,32 +14,18 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 	std::string warn;
 	std::string err;
 	const char* pathWithObj = "SARS_CoV_2_Vaccine.obj";
-	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Dumbbell-Weights-Set-obj\\Dumbbell_Weights_Set.obj";
-	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\Fitness_Equipment_Collection_5_obj\\Sport-Water-Bottle-Red-obj\\Sport_Water_Bottle_Red_convert.obj";
-	//const char* pathWithObj = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple\\apple.obj";
-	//"C:/Users/aaa/Downloads/OBJ/PalletPlywoodNew_GameReady.obj",//"SARS_CoV_2_Vaccine.obj",
 	const char* objPath = "";
-	//const char* objPath = "C:\\Users\\aaa\\Downloads\\3634_open3dmodel\\3634_open3dmodel\\Apple";
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, pathWithObj, objPath, true, true);
-	if (ret) {
-		std::cout << "Model is loaded" << std::endl;
-	}
+	if (ret) std::cout << "Model is loaded" << std::endl;
+
 	pointsSize = attrib.vertices.size()/3;
 	points2 = (SimpleExtendedVertex*) std::malloc(sizeof(SimpleExtendedVertex) * pointsSize);
-	/*for (int i = 0, j = 0; i < attrib.vertices.size(); i += 3, j++) {
-		points2[j] = {
-			XMFLOAT3(attrib.vertices[i], attrib.vertices[i + 1], attrib.vertices[i + 2]),
-			XMFLOAT2(1.0f, 0.0f),
 
-		};
-	}
-	if (ret) {
-		SimpleExtendedVertex tmp = points2[1];
-		SimpleExtendedVertex tmp2 = points2[2];
-		std::cout << "Model is loaded" << std::endl;
-	}*/
+	initPoints(&attrib, &shapes);
+}
 
-	auto sarsIndeces = shapes[0].mesh.indices;
+void CustomMeshComponent::initPoints(tinyobj::attrib_t* attrib, std::vector<tinyobj::shape_t>* shapes) {
+	auto sarsIndeces = (*shapes)[0].mesh.indices;
 	indexesSize = sarsIndeces.size();
 	indexes = (WORD*)std::malloc(sizeof(int) * indexesSize);
 	WORD tmpIndex;
@@ -47,32 +33,19 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : wasSet(false), g(g) {
 		indexes[i] = sarsIndeces[i].vertex_index;
 		if (i % 3 == 1) {
 			tmpIndex = sarsIndeces[i].vertex_index;
-		} else if (i % 3 == 2) {
+		}
+		else if (i % 3 == 2) {
 			indexes[i] = tmpIndex;
-			indexes[i-1] = sarsIndeces[i].vertex_index;
+			indexes[i - 1] = sarsIndeces[i].vertex_index;
 		}
 		int v = indexes[i];
 		int tc = sarsIndeces[i].texcoord_index;
 		int n = sarsIndeces[i].normal_index;
 		points2[v] = {
-			XMFLOAT3(attrib.vertices[v * 3], attrib.vertices[v * 3 + 1], attrib.vertices[v * 3 + 2]),
-			XMFLOAT2(attrib.texcoords[tc * 2], attrib.texcoords[tc * 2 + 1]),
-			XMFLOAT3(attrib.normals[n * 3],   attrib.normals[n * 3 + 1],  attrib.normals[n * 3 + 2])
+			XMFLOAT3(attrib->vertices[v * 3], attrib->vertices[v * 3 + 1], attrib->vertices[v * 3 + 2]),
+			XMFLOAT2(attrib->texcoords[tc * 2], attrib->texcoords[tc * 2 + 1]),
+			XMFLOAT3(attrib->normals[n * 3],   attrib->normals[n * 3 + 1],  attrib->normals[n * 3 + 2])
 		};
-	}
-
-	if (ret) {
-		WORD tmp = indexes[1];
-		WORD tmp2 = indexes[2];
-		SimpleExtendedVertex tmp3 = points2[1];
-		SimpleExtendedVertex tmp4 = points2[2];
-		/*for (int i = 0; i < 30; i++) {
-			std::cout << points2[i].Pos.x << " " << points2[i].Pos.y << " " << points2[i].Pos.z << std::endl;
-		}
-		for (int i = 0; i < 30; i++) {
-			std::cout << indexes[i] << std::endl;
-		}*/
-		std::cout << "Model is loaded" << std::endl;
 	}
 }
 

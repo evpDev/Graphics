@@ -22,9 +22,31 @@ struct SimpleExtendedVertex
 	DirectX::XMFLOAT3 Normal;
 };
 
+struct Transform {
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 rotation;
+	DirectX::XMFLOAT3 scale;
+
+	Transform();
+};
+
+struct MeshFilter {
+	DirectX::XMFLOAT3* vertexes;
+	int vertexesSize;
+	WORD* indexes;
+	int indexesSize;
+
+	int* getIndexes();
+	int getIndexesSize();
+	int* getVertexes();
+	int getVertexesSize();
+};
+
 class GameComponent {
 	//Game game;
 public:
+	Transform transform;
+	MeshFilter mesh;
 	ID3D11InputLayout* layout;
 	ID3D11PixelShader* pixelShader;
 	ID3DBlob* pixelShaderByteCode;

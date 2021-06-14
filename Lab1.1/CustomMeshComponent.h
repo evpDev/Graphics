@@ -1,10 +1,12 @@
 #pragma once
 
+#include "tiny_obj_loader.h"
 #include "GameComponent.h"
 #include "ProjectUtils.h"
 #include "TextureLoader.h"
 #include "Game.h"
 #include <d3d11.h>
+
 //#pragma comment(lib, "d3dx11.lib")
 
 class Game;
@@ -35,6 +37,7 @@ public:
 	CustomMeshComponent();
 	CustomMeshComponent(Game* g);
 	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName);
+	void initPoints(tinyobj::attrib_t* attrib, std::vector<tinyobj::shape_t>* shapes);
 	int initialize();
 
 	int* getIndexes();
