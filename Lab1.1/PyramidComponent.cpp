@@ -24,7 +24,7 @@ PyramidComponent::PyramidComponent() :
 
 int PyramidComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 
-	meshRenderer->initialize(display, device, "VSMainColor", "PSMainColor");
+	meshRenderer->initialize(display, device, sizeof(SimpleVertex), "VSMainColor", "PSMainColor");
 
 	D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,	 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},

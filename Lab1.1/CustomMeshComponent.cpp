@@ -22,7 +22,7 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : /*wasSet(false),*/ g(g) {
 
 int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 
-	meshRenderer->initialize(display, device, "VSMain", "PSMain");
+	meshRenderer->initialize(display, device, sizeof(SimpleExtendedVertex), "VSMain", "PSMain");
 
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},

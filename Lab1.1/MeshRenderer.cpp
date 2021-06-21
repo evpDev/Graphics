@@ -7,26 +7,15 @@ MeshRenderer::MeshRenderer(MeshFilter* mesh, void* points) : wasSet(false), mesh
 int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, UINT pointsTypeSize) {
 	HRESULT res;
 
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = pointsTypeSize * mesh->getPointsSize();
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = points;
 	if (!wasSet) {
 		res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
 	}
 
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * mesh->getIndexesSize();
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = 0;
 	InitData.pSysMem = mesh->getIndexes();
-
 	if (!wasSet) {
-		res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
+		res = device->CreateBuffer(&bd2, &InitData, &indexBuff); ZCHECK(res);
 	}
 
 	UINT stride = pointsTypeSize;
@@ -34,19 +23,9 @@ int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
 
-	/*-------------------------Constant Buffer------------------------------*/
-	constantBufDesc = {};
-	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
-	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	constantBufDesc.CPUAccessFlags = 0;
-	constantBufDesc.MiscFlags = 0;
-	constantBufDesc.StructureByteStride = 0;
-	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
-
 	if (!wasSet) {
 		res = device->CreateBuffer(&constantBufDesc, NULL, constBuff); ZCHECK(res);
 	}
-	/*-------------------------Constant Buffer------------------------------*/
 
 	context->IASetInputLayout(layout);
 	context->VSSetShader(vertexShader, nullptr, 0);
@@ -54,7 +33,7 @@ int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D
 	context->VSSetConstantBuffers(0, 1, constBuff);
 }
 
-int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 	HRESULT res;
 	ID3DBlob* errorVertexCode;
 	res = D3DCompileFromFile(L"MiniTri.fx",
@@ -122,6 +101,30 @@ int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D1
 		pixelShaderByteCode->GetBufferPointer(),
 		pixelShaderByteCode->GetBufferSize(),
 		nullptr, &pixelShader);
+
+	/*-------------------------Init buffers------------------------------*/
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = pointsTypeSize * mesh->getPointsSize();
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	ZeroMemory(&bd2, sizeof(bd2));
+	bd2.Usage = D3D11_USAGE_DEFAULT;
+	bd2.ByteWidth = sizeof(WORD) * mesh->getIndexesSize();
+	bd2.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd2.CPUAccessFlags = 0;
+	/*-------------------------Init buffers------------------------------*/
+
+	/*-------------------------Constant Buffer------------------------------*/
+	constantBufDesc = {};
+	constantBufDesc.Usage = D3D11_USAGE_DEFAULT;
+	constantBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufDesc.CPUAccessFlags = 0;
+	constantBufDesc.MiscFlags = 0;
+	constantBufDesc.StructureByteStride = 0;
+	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
+	/*-------------------------Constant Buffer------------------------------*/
 }
 
 void MeshRenderer::initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize) {

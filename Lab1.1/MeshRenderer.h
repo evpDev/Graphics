@@ -12,6 +12,7 @@
 class MeshRenderer {
 public:
 	D3D11_BUFFER_DESC bd;
+	D3D11_BUFFER_DESC bd2;
 	D3D11_BUFFER_DESC constantBufDesc;
 	D3D11_SUBRESOURCE_DATA InitData;
 	ID3D11Buffer* vertexBuff;
@@ -31,6 +32,6 @@ public:
 	MeshRenderer();
 	MeshRenderer(MeshFilter* mesh, void* points);
 	int draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, UINT pointsTypeSize);
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
 	void initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize);
 };
