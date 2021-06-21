@@ -43,9 +43,11 @@ public:
 	std::vector<GameComponent*> components;
 	GameComponent* component;
 	
+	ConstantBuffer* cb;
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX view;
 	DirectX::XMMATRIX projection;
+
 	ID3D11Buffer* constBuff;
 	InputDevice* inputDevice;
 	float orthoScale;

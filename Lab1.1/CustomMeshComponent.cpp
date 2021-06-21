@@ -20,9 +20,9 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : /*wasSet(false),*/ g(g) {
 	meshRenderer = new MeshRenderer(mesh, points);
 }
 
-int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff2, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 
-	meshRenderer->initialize(display, device, sizeof(SimpleExtendedVertex), "VSMain", "PSMain");
+	meshRenderer->initialize(display, device, sizeof(SimpleExtendedVertex), constBuff2, "VSMain", "PSMain");
 
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -34,12 +34,6 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 	LPCWSTR filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
 	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);
 
-	return 0;
-}
-
-int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
-	meshRenderer->draw(context, device, constBuff, sizeof(SimpleExtendedVertex));
-
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -49,16 +43,20 @@ int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComP
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	if (!meshRenderer->wasSet) {
-		HRESULT res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);
-	}
+	HRESULT res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);
 
+	return 0;
+}
+
+void CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
+	meshRenderer->draw(context, device, constBuff, sizeof(SimpleExtendedVertex));
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;D3D11_PRIMITIVE_TOPOLOGY_LINELIST
 	context->PSSetShaderResources(0, 1, &texSRV);
 	context->PSSetSamplers(0, 1, &samplerLinear);
+}
 
-	meshRenderer->wasSet = true;
-	return 0;
+void CustomMeshComponent::update(ID3D11DeviceContext* context, ConstantBuffer* cb) {
+	meshRenderer->update(context, cb);
 }
 
 int* CustomMeshComponent::getIndexes() {

@@ -45,7 +45,7 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 			inputDevice->onKeyDown(static_cast<unsigned int>(wparam));
 			if (static_cast<unsigned int>(wparam) == static_cast<unsigned int>(Keys::Escape)) PostQuitMessage(0);
 
-			return 0;
+			break;
 		}
 
 		// Check if a key has been released on the keyboard.
@@ -57,7 +57,7 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 		case WM_MOUSEWHEEL: {
 			inputDevice->onMouseWheel(static_cast<unsigned int>(wparam));
 			std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
-			return 0;
+			break;
 		}
 
 		// All other messages pass to the message handler in the system class.
@@ -65,6 +65,11 @@ LRESULT Game::messageHandler(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lpa
 			return DefWindowProc(hwnd, umessage, wparam, lparam);
 		}
 	}
+
+	cb->mWorld = XMMatrixTranspose(world);
+	cb->mView = XMMatrixTranspose(view);
+	cb->mProjection = XMMatrixTranspose(projection);
+	return 0;
 }
 
 Game::Game(HINSTANCE hInstance) : textureLoader(new TextureLoader(this)) {
@@ -76,6 +81,7 @@ Game::Game(HINSTANCE hInstance) : textureLoader(new TextureLoader(this)) {
 	perspectScale = -5;
 	isPerspectiveView = false;
 	inputDevice = new InputDevice(this);
+	cb = new ConstantBuffer();
 
 	components.push_back(new PlaneComponent());
 	//components.push_back(new CubeComponent());
@@ -94,7 +100,7 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 	prepareResources();
 
 	for (GameComponent* tc : components) {
-		tc->initialize(display, device);
+		tc->initialize(display, device, &constBuff);
 	}
 
 	prepareFrame();
@@ -154,13 +160,11 @@ void Game::draw() {
 
 	for (GameComponent* gc : components) {
 		gc->draw(context, device, &constBuff);
-		setMatrixes();
+		gc->update(context, cb);
+		//setMatrixes();
 		context->DrawIndexed(gc->getIndexesSize(), 0, 0);
 	}
 	annotation->EndEvent();
-
-	//bool s_EnableVSync = true;
-	//UINT PresentInterval = s_EnableVSync ? std::min(4, (int)(s_FrameTime * 60.0f)) : 0;
 
 	endFrame();
 }
@@ -271,21 +275,18 @@ HRESULT Game::initMatrixes() {
 	//projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
 	projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
 
+	cb->mWorld = XMMatrixTranspose(world);
+	cb->mView = XMMatrixTranspose(view);
+	cb->mProjection = XMMatrixTranspose(projection);
+
 	return S_OK;
 }
 
 void Game::setMatrixes() {
-	static float t = 0.0f;
-	static DWORD dwTimeStart = 0;
-	DWORD dwTimeCur = GetTickCount();
-	if (dwTimeStart == 0)
-		dwTimeStart = dwTimeCur;
-	t = (dwTimeCur - dwTimeStart) / 1000.0f;
-
-	ConstantBuffer cb;
-	cb.mWorld = XMMatrixTranspose(world);
+	//ConstantBuffer cb;
+	/*cb.mWorld = XMMatrixTranspose(world);
 	cb.mView = XMMatrixTranspose(view);
-	cb.mProjection = XMMatrixTranspose(projection);
+	cb.mProjection = XMMatrixTranspose(projection);*/
 
-	context->UpdateSubresource(this->constBuff, 0, NULL, &cb, 0, 0);
+	context->UpdateSubresource(this->constBuff, 0, NULL, cb, 0, 0);
 }

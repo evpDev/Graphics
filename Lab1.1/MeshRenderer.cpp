@@ -1,41 +1,28 @@
 #include "MeshRenderer.h"
 
-MeshRenderer::MeshRenderer() : wasSet(false) {}
+MeshRenderer::MeshRenderer() {}
 
-MeshRenderer::MeshRenderer(MeshFilter* mesh, void* points) : wasSet(false), mesh(mesh), points(points) {}
+MeshRenderer::MeshRenderer(MeshFilter* mesh, void* points) : mesh(mesh), points(points) {}
 
-int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, UINT pointsTypeSize) {
-	HRESULT res;
-
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = points;
-	if (!wasSet) {
-		res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
-	}
-
-	InitData.pSysMem = mesh->getIndexes();
-	if (!wasSet) {
-		res = device->CreateBuffer(&bd2, &InitData, &indexBuff); ZCHECK(res);
-	}
-
-	UINT stride = pointsTypeSize;
-	UINT offset = 0;
+void MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff2, UINT pointsTypeSize) {
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
-
-	if (!wasSet) {
-		res = device->CreateBuffer(&constantBufDesc, NULL, constBuff); ZCHECK(res);
-	}
-
 	context->IASetInputLayout(layout);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
-	context->VSSetConstantBuffers(0, 1, constBuff);
+	context->VSSetConstantBuffers(0, 1, &constBuff);
 }
 
-int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+void MeshRenderer::update(ID3D11DeviceContext* context, ConstantBuffer* cb) {
+	context->UpdateSubresource(constBuff, 0, NULL, cb, 0, 0);
+}
+
+int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, ID3D11Buffer** constBuff2, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 	HRESULT res;
 	ID3DBlob* errorVertexCode;
+	stride = pointsTypeSize;
+	offset = 0;
+
 	res = D3DCompileFromFile(L"MiniTri.fx",
 		nullptr /*macros*/,
 		nullptr /*include*/,
@@ -125,7 +112,37 @@ int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D1
 	constantBufDesc.StructureByteStride = 0;
 	constantBufDesc.ByteWidth = sizeof(ConstantBuffer);
 	/*-------------------------Constant Buffer------------------------------*/
+
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = points;
+	res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
+	InitData.pSysMem = mesh->getIndexes();
+	res = device->CreateBuffer(&bd2, &InitData, &indexBuff); ZCHECK(res);
+	res = device->CreateBuffer(&constantBufDesc, NULL, &constBuff); ZCHECK(res);
 }
+
+//HRESULT MeshRenderer::initMatrixes(DisplayWin32* display) {
+//	RECT rc;
+//	GetClientRect(display->hWnd, &rc);
+//	UINT width = rc.right - rc.left;
+//	UINT height = rc.bottom - rc.top;
+//
+//	world = XMMatrixIdentity();
+//
+//	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -8.0f, 0.0f);
+//	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+//	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+//	view = XMMatrixLookAtLH(Eye, At, Up);
+//
+//	//projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
+//	projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
+//
+//	cb.mWorld = XMMatrixTranspose(world);
+//	cb.mView = XMMatrixTranspose(view);
+//	cb.mProjection = XMMatrixTranspose(projection);
+//
+//	return S_OK;
+//}
 
 void MeshRenderer::initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize) {
 	device->CreateInputLayout(inputElements, inputElementsSize, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);

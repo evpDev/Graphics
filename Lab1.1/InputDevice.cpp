@@ -50,8 +50,7 @@ void InputDevice::onMouseWheel(int key) {
 			XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 			game->view = XMMatrixLookAtLH(Eye, At, Up);
 			game->projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, game->display->screenWidth / (FLOAT)game->display->screenHeight, 0.01f, 100.0f);
-		}
-		else {
+		} else {
 			game->orthoScale += 0.2;
 			game->projection = XMMatrixOrthographicLH(game->orthoScale, game->orthoScale, 0.01f, 1000.0f);
 		}
@@ -65,8 +64,7 @@ void InputDevice::onMouseWheel(int key) {
 			XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 			game->view = XMMatrixLookAtLH(Eye, At, Up);
 			game->projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, game->display->screenWidth / (FLOAT)game->display->screenHeight, 0.01f, 100.0f);
-		}
-		else {
+		} else {
 			game->orthoScale -= 0.2;
 			game->projection = XMMatrixOrthographicLH(game->orthoScale, game->orthoScale, 0.01f, 1000.0f);
 		}

@@ -28,11 +28,11 @@ public:
 
 	GameComponent();
 	void destroyResources();
-	virtual int draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) = 0;
+	virtual void draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) = 0;
 
-	virtual int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
+	virtual int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
 	void reload();
-	void update();
+	virtual void update(ID3D11DeviceContext* context, ConstantBuffer* cb);
 
 	virtual int* getIndexes() = 0;
 	virtual int getIndexesSize() = 0;
