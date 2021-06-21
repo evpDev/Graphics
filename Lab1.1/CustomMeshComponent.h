@@ -16,6 +16,11 @@ public:
 	SimpleExtendedVertex* points;
 	Game* g;
 
+	D3D11_SAMPLER_DESC sampDesc;
+	ID3D11Texture2D* texture;
+	ID3D11SamplerState* samplerLinear;
+	ID3D11ShaderResourceView* texSRV;
+
 	CustomMeshComponent();
 	CustomMeshComponent(Game* g);
 	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName);

@@ -60,7 +60,6 @@ int PlaneComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3
 }
 
 int PlaneComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
-
 	meshRenderer->draw(context, device, constBuff, sizeof(SimpleVertex));
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	meshRenderer->wasSet = true;

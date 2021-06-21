@@ -26,13 +26,6 @@ public:
 	ID3DBlob* vertexShaderByteCode;
 	ID3DBlob* errorVertexCode;
 
-	D3D11_SAMPLER_DESC sampDesc;
-	ID3D11Texture2D* texture;
-	ID3D11SamplerState* samplerLinear;
-	ID3D11ShaderResourceView* texSRV;
-
-	//TextureLoader* textureLoader;
-
 	bool wasSet;
 
 	MeshRenderer();

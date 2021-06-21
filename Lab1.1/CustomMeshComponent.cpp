@@ -32,19 +32,30 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 	meshRenderer->initLayout(device, inputElements, 3);
 
 	LPCWSTR filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
-	g->textureLoader->loadTextureFromFile(filename, meshRenderer->texture, meshRenderer->texSRV, true, false, 0);
+	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);
 
 	return 0;
 }
 
 int CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
-	HRESULT res;
-
 	meshRenderer->draw(context, device, constBuff, sizeof(SimpleExtendedVertex));
 
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	if (!meshRenderer->wasSet) {
+		HRESULT res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);
+	}
+
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;D3D11_PRIMITIVE_TOPOLOGY_LINELIST
-	context->PSSetShaderResources(0, 1, &meshRenderer->texSRV);
-	context->PSSetSamplers(0, 1, &meshRenderer->samplerLinear);
+	context->PSSetShaderResources(0, 1, &texSRV);
+	context->PSSetSamplers(0, 1, &samplerLinear);
 
 	meshRenderer->wasSet = true;
 	return 0;

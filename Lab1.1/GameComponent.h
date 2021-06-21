@@ -25,14 +25,6 @@ public:
 	Transform transform;
 	MeshFilter* mesh;
 	MeshRenderer* meshRenderer;
-	//
-	ID3D11InputLayout* layout;
-	ID3D11PixelShader* pixelShader;
-	ID3DBlob* pixelShaderByteCode;
-	ID3D11VertexShader* vertexShader;
-	ID3DBlob* vertexShaderByteCode;
-	ID3DBlob* errorVertexCode;
-	//
 
 	GameComponent();
 	void destroyResources();
