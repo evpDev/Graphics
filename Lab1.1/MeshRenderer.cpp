@@ -4,7 +4,7 @@ MeshRenderer::MeshRenderer() : wasSet(false) {}
 
 MeshRenderer::MeshRenderer(MeshFilter* mesh, void* points) : wasSet(false), mesh(mesh), points(points) {}
 
-int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, int pointsTypeSize) {
+int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, UINT pointsTypeSize) {
 	HRESULT res;
 
 	ZeroMemory(&bd, sizeof(bd));
@@ -15,7 +15,6 @@ int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D
 
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = points;
-
 	if (!wasSet) {
 		res = device->CreateBuffer(&bd, &InitData, &vertexBuff); ZCHECK(res);
 	}
@@ -30,11 +29,10 @@ int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D
 		res = device->CreateBuffer(&bd, &InitData, &indexBuff); ZCHECK(res);
 	}
 
-	UINT stride = pointsTypeSize;//sizeof(SimpleVertex);
+	UINT stride = pointsTypeSize;
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	/*-------------------------Constant Buffer------------------------------*/
 	constantBufDesc = {};
@@ -50,12 +48,23 @@ int MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D
 	}
 	/*-------------------------Constant Buffer------------------------------*/
 
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	if (!wasSet) {
+		res = device->CreateSamplerState(&sampDesc, &samplerLinear); ZCHECK(res);
+	}
+
 	context->IASetInputLayout(layout);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
 	context->VSSetConstantBuffers(0, 1, constBuff);
-
-	wasSet = true;
 }
 
 int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
@@ -130,4 +139,6 @@ int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D1
 
 void MeshRenderer::initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize) {
 	device->CreateInputLayout(inputElements, inputElementsSize, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);
+	/*LPCWSTR filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
+	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);*/
 }

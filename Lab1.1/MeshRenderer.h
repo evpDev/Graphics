@@ -3,6 +3,7 @@
 #include "DisplayWin32.h"
 #include "ProjectUtils.h"
 #include "MeshFilter.h"
+//#include "TextureLoader.h"
 #include <d3d11.h>
 #include <wrl.h>
 #include <d3dcompiler.h>
@@ -25,11 +26,18 @@ public:
 	ID3DBlob* vertexShaderByteCode;
 	ID3DBlob* errorVertexCode;
 
+	D3D11_SAMPLER_DESC sampDesc;
+	ID3D11Texture2D* texture;
+	ID3D11SamplerState* samplerLinear;
+	ID3D11ShaderResourceView* texSRV;
+
+	//TextureLoader* textureLoader;
+
 	bool wasSet;
 
 	MeshRenderer();
 	MeshRenderer(MeshFilter* mesh, void* points);
-	int draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, int pointsTypeSize);
+	int draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, UINT pointsTypeSize);
 	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
 	void initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize);
 };
