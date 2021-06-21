@@ -48,7 +48,7 @@ public:
 	DirectX::XMMATRIX view;
 	DirectX::XMMATRIX projection;
 
-	ID3D11Buffer* constBuff;
+	//ID3D11Buffer* constBuff;
 	InputDevice* inputDevice;
 	float orthoScale;
 	float perspectScale;
@@ -70,6 +70,5 @@ public:
 	void updateInternal();
 
 	HRESULT initMatrixes();
-	void setMatrixes();
 	int prepareFrame();
 };

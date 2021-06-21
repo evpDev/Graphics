@@ -21,8 +21,8 @@ public:
 	TriangleComponent(DirectX::XMFLOAT4* positions, DirectX::XMFLOAT4* colors, int posColSize, int* indexes);
 	void destroyResources();
 	void draw();
-	void draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff);
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, LPCSTR vertexShaderName = "VSMain", LPCSTR pixelShaderName = "PSMain");
+	void draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device);
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName = "VSMain", LPCSTR pixelShaderName = "PSMain");
 	void reload();
 	void update();
 

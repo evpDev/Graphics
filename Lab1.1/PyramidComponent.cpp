@@ -22,9 +22,9 @@ PyramidComponent::PyramidComponent() :
 	meshRenderer = new MeshRenderer(mesh, points);
 }
 
-int PyramidComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+int PyramidComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 
-	meshRenderer->initialize(display, device, sizeof(SimpleVertex), constBuff, "VSMainColor", "PSMainColor");
+	meshRenderer->initialize(display, device, sizeof(SimpleVertex), "VSMainColor", "PSMainColor");
 
 	D3D11_INPUT_ELEMENT_DESC inputElements2[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,	 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -35,8 +35,8 @@ int PyramidComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<I
 	return 0;
 }
 
-void PyramidComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
-	meshRenderer->draw(context, device, constBuff, sizeof(SimpleVertex));
+void PyramidComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device) {
+	meshRenderer->draw(context, device, sizeof(SimpleVertex));
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 }
 

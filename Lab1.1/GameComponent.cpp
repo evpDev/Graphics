@@ -8,7 +8,7 @@ Transform::Transform() {
 
 GameComponent::GameComponent() {}
 
-int GameComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+int GameComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 	return 0;
 }
 

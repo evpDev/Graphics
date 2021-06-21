@@ -20,9 +20,9 @@ CustomMeshComponent::CustomMeshComponent(Game* g) : /*wasSet(false),*/ g(g) {
 	meshRenderer = new MeshRenderer(mesh, points);
 }
 
-int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff2, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 
-	meshRenderer->initialize(display, device, sizeof(SimpleExtendedVertex), constBuff2, "VSMain", "PSMain");
+	meshRenderer->initialize(display, device, sizeof(SimpleExtendedVertex), "VSMain", "PSMain");
 
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
 		D3D11_INPUT_ELEMENT_DESC {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -48,8 +48,8 @@ int CustomMeshComponent::initialize(DisplayWin32* display, Microsoft::WRL::ComPt
 	return 0;
 }
 
-void CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff) {
-	meshRenderer->draw(context, device, constBuff, sizeof(SimpleExtendedVertex));
+void CustomMeshComponent::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device) {
+	meshRenderer->draw(context, device, sizeof(SimpleExtendedVertex));
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;D3D11_PRIMITIVE_TOPOLOGY_LINELIST
 	context->PSSetShaderResources(0, 1, &texSRV);
 	context->PSSetSamplers(0, 1, &samplerLinear);

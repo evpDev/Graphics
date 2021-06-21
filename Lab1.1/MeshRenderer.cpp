@@ -4,7 +4,7 @@ MeshRenderer::MeshRenderer() {}
 
 MeshRenderer::MeshRenderer(MeshFilter* mesh, void* points) : mesh(mesh), points(points) {}
 
-void MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff2, UINT pointsTypeSize) {
+void MeshRenderer::draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize) {
 	context->IASetVertexBuffers(0, 1, &vertexBuff, &stride, &offset);
 	context->IASetIndexBuffer(indexBuff, DXGI_FORMAT_R16_UINT, 0);
 	context->IASetInputLayout(layout);
@@ -17,7 +17,7 @@ void MeshRenderer::update(ID3D11DeviceContext* context, ConstantBuffer* cb) {
 	context->UpdateSubresource(constBuff, 0, NULL, cb, 0, 0);
 }
 
-int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, ID3D11Buffer** constBuff2, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
+int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, LPCSTR vertexShaderName, LPCSTR pixelShaderName) {
 	HRESULT res;
 	ID3DBlob* errorVertexCode;
 	stride = pointsTypeSize;
@@ -121,31 +121,6 @@ int MeshRenderer::initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D1
 	res = device->CreateBuffer(&constantBufDesc, NULL, &constBuff); ZCHECK(res);
 }
 
-//HRESULT MeshRenderer::initMatrixes(DisplayWin32* display) {
-//	RECT rc;
-//	GetClientRect(display->hWnd, &rc);
-//	UINT width = rc.right - rc.left;
-//	UINT height = rc.bottom - rc.top;
-//
-//	world = XMMatrixIdentity();
-//
-//	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -8.0f, 0.0f);
-//	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-//	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-//	view = XMMatrixLookAtLH(Eye, At, Up);
-//
-//	//projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
-//	projection = XMMatrixOrthographicLH(orthoScale, orthoScale, 0.01f, 1000.0f);
-//
-//	cb.mWorld = XMMatrixTranspose(world);
-//	cb.mView = XMMatrixTranspose(view);
-//	cb.mProjection = XMMatrixTranspose(projection);
-//
-//	return S_OK;
-//}
-
 void MeshRenderer::initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize) {
 	device->CreateInputLayout(inputElements, inputElementsSize, vertexShaderByteCode->GetBufferPointer(), vertexShaderByteCode->GetBufferSize(), &this->layout);
-	/*LPCWSTR filename = L"SARS_CoV_2_Vaccine_Red_Diffuse.png";
-	g->textureLoader->loadTextureFromFile(filename, texture, texSRV, true, false, 0);*/
 }

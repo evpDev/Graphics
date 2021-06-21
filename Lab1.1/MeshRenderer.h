@@ -33,8 +33,8 @@ public:
 
 	MeshRenderer();
 	MeshRenderer(MeshFilter* mesh, void* points);
-	void draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, ID3D11Buffer** constBuff, UINT pointsTypeSize);
-	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, ID3D11Buffer** constBuff, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
+	void draw(ID3D11DeviceContext* context, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize);
+	int initialize(DisplayWin32* display, Microsoft::WRL::ComPtr<ID3D11Device> device, UINT pointsTypeSize, LPCSTR vertexShaderName = "", LPCSTR pixelShaderName = "");
 	void initLayout(Microsoft::WRL::ComPtr<ID3D11Device> device, D3D11_INPUT_ELEMENT_DESC* inputElements, int inputElementsSize);
 	void update(ID3D11DeviceContext* context, ConstantBuffer* cb);
 	//HRESULT initMatrixes();

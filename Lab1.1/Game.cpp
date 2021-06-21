@@ -100,7 +100,7 @@ int Game::initialize(HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
 	prepareResources();
 
 	for (GameComponent* tc : components) {
-		tc->initialize(display, device, &constBuff);
+		tc->initialize(display, device);
 	}
 
 	prepareFrame();
@@ -159,9 +159,8 @@ void Game::draw() {
 	annotation->BeginEvent(L"BeginDraw");
 
 	for (GameComponent* gc : components) {
-		gc->draw(context, device, &constBuff);
+		gc->draw(context, device);
 		gc->update(context, cb);
-		//setMatrixes();
 		context->DrawIndexed(gc->getIndexesSize(), 0, 0);
 	}
 	annotation->EndEvent();
@@ -280,13 +279,4 @@ HRESULT Game::initMatrixes() {
 	cb->mProjection = XMMatrixTranspose(projection);
 
 	return S_OK;
-}
-
-void Game::setMatrixes() {
-	//ConstantBuffer cb;
-	/*cb.mWorld = XMMatrixTranspose(world);
-	cb.mView = XMMatrixTranspose(view);
-	cb.mProjection = XMMatrixTranspose(projection);*/
-
-	context->UpdateSubresource(this->constBuff, 0, NULL, cb, 0, 0);
 }
